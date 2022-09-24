@@ -1,0 +1,48 @@
+{
+  "name": "Smarter Smartschool",
+  "short_name": "SmarterSS",
+  "version": "5",
+  "description": "Makes smartschool smarter.",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "declarativeContent"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "action": {
+    "default_popup": "options.html"
+  },
+  "icons": {
+    "16": "static/img/icon_16.png",
+    "48": "static/img/icon_48.png",
+    "128": "static/img/icon_128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.smartschool.be/Grades*"
+      ],
+      "js": [
+        "static/js/jquery-3.4.1.min.js",
+        "BeterGrades.js"
+      ],
+      "run_at": "document_end"
+    },
+    {
+      "matches": [
+        "https://*.smartschool.be/*"
+      ],
+      "js": [
+        "BeterStyle.js"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "manifest_version": 3
+}

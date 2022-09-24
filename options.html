@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Smarter Smartschool Options</title>
+  <link rel="stylesheet" href="static/css/bootstrap.min.css">
+  <link rel="stylesheet" href="static/css/jquery.minicolors.css">
+</head>
+
+<body class="m-5" style="width: 700px;">
+  <form>
+    <div class="form-group">
+      <label for="theme">Theme:</label>
+      <select id="theme" class="form-control">
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+        <option value="custom">Custom</option>
+      </select>
+    </div>
+
+    <div id="colors" class="form-group" style="display: none">
+      <div class="form-group form-inline">
+        <label for="colorbg" stule="mr-2">Background:</label>
+        <input id="colorbg" type="text" value="#FFFFFF" class="form-control color" />
+      </div>
+      <div class="form-group form-inline">
+        <label for="colorte" stule="mr-2">Text:</label>
+        <input id="colorte" type="text" value="#262626" class="form-control color" />
+      </div>
+      <div class="form-group form-inline">
+        <label for="colortb" stule="mr-2">Topbar:</label>
+        <input id="colortb" type="text" value="#FF520E" class="form-control color" />
+      </div>
+      <div class="form-group form-inline">
+        <label for="colortt" stule="mr-2">Topbar text:</label>
+        <input id="colortt" type="text" value="#FFFFFF" class="form-control color" />
+      </div>
+    </div>
+
+    <button id="save" class="btn btn-primary">Save</button>
+
+  </form>
+  <script src="static/js/jquery-3.4.1.min.js"></script>
+  <script src="static/js/bootstrap.bundle.min.js"></script>
+  <script src="static/js/jquery.minicolors.min.js"></script>
+  <script src="options.js"></script>
+</body>
+
+</html>

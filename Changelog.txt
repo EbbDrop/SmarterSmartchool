@@ -1,0 +1,25 @@
+5.0:
+-Removed custom images
+-Made extension open source
+
+4.4:
+-Fixed theme in "taken" and player selector for messages.
+
+4.3:
+-Changed name to 'Smarter Smart School'.
+-Fixed total grades not apearing when clicking on a notification.
+-Fixed typo in image explanation
+
+4.2:
+-Added totals to list view
+-Fixed themes for password reset
+
+4.1:
+-Changed defoult dark theme
+-Fixed theme for new message dialog
+-Fixed totals apearing twice
+
+4.0:
+-Aded custum syles: Set your own background and forground color.
+-Fixed notifcatino theme
+-Code cleanup
