@@ -26,6 +26,10 @@ var smscMainCallback = function(mutationsList, observer) {
 var smscMainObserver = new MutationObserver(smscMainCallback);
 smscMainObserver.observe($('#smscMain')[0], { attributes: false, childList: true, subtree: false });
 
+function totalToStr(total_numerator, total_denominator) {
+  return (Math.round(total_numerator / total_denominator * 1000) / 10).toString() + '%';
+}
+
 function addButton() {
   $(".wide-toolbar").append(
     $("<button/>")
@@ -39,13 +43,137 @@ function addButton() {
 }
 
 function makeGrid() {
-  return "GRID!"
+  var loading = $("<h3>Loading!</h3>");
+  fetch('/results/api/v1/evaluations?itemsOnPage=500').then(r => r.json()).then(results => {
+    console.log(results);
+    var data = {};
+    var course_to_graphic = {};
+    for (const result of results) {
+      let period = result["period"]["name"];
+      if (!(period in data)) {
+        data[period] = {};
+      }
+
+      period = data[period];
+      for (const course of result["courses"]) {
+        course_to_graphic[course["name"]] = course["graphic"]
+        const course_name = course["name"];
+        if (!(course_name in period)) {
+          period[course_name] = [];
+        }
+        period[course_name].push({ "date": result["date"], "graphic": result["graphic"] })
+      }
+    }
+
+    var longest = 0;
+    for (var [_, period] of Object.entries(data)) {
+      for (var [_, course] of Object.entries(period)) {
+        course.sort((a, b) => { return a["date"].localeCompare(b["date"]); })
+        if (course.length > longest) {
+          longest = course.length;
+        }
+      }
+    }
+    for (var period_name of Object.keys(data)) {
+      var table = $("<table/>").attr("id", "result-table");
+      for (var [course_name, course] of Object.entries(period)) {
+        var row = $("<tr/>");
+        if (course_to_graphic[course_name].type == "icon") {
+          row.append($("<th/>").append(
+            $("<span/>")
+              .addClass("icon-label icon-label--24 smsc-svg--" + course_to_graphic[course_name]["value"] + "--24")
+              .text(course_name)
+          ));
+        } else {
+          row.append($("<th/>").text(course_name));
+        }
+
+        var total_numerator = 0;
+        var total_denominator = 0;
+        for (const result of course) {
+          const desc = result["graphic"]["description"];
+          const color = result["graphic"]["color"];
+          row.append($("<td/>").addClass("c-" + color + "-combo--100").text(desc));
+
+          var match = desc.match(/^([\d\,\.]+)\/([\d\,\.]+)$/);
+          if (match) {
+            total_numerator += parseFloat(match[1].replace(',', '.'))
+            total_denominator += parseFloat(match[2].replace(',', '.'))
+          }
+        }
+
+        for (var i = 0; i < longest - course.length; i++) {
+          row.append($("<td/>"));
+        }
+
+        var last_cell = $("<td/>").addClass("total");
+        if (total_denominator != 0) {
+          last_cell.text(totalToStr(total_numerator, total_denominator));
+          if (total_numerator / total_denominator < 0.5) {
+            last_cell.addClass('is-low');
+          }
+        }
+        row.append(last_cell);
+
+        table.append(row);
+      }
+      data[period_name] = table;
+    }
+
+    var modal = $("<div/>");
+    var period_buttons = $("<div/>");
+    var main_grid = $("<div/>").attr("id", "table-container");
+    for (var [period_name, _] of Object.entries(data)) {
+      period_buttons.append($("<button/>").text(period_name).click(() => {
+        main_grid.empty();
+        main_grid.append(data[period_name]);
+      }));
+    }
+    console.log(course_to_graphic);
+    period_buttons.children().last().click();
+    modal.append(period_buttons);
+    modal.append(main_grid);
+    loading.replaceWith(modal);
+  })
+  return loading;
 }
 
 function onLoad() {
   var style = document.createElement('style');
   style.innerHTML = `
-  #modal-background {
+
+.total {
+    font-weight: bold;
+}
+
+.is-low {
+    color: red !important;
+}
+
+#table-container {
+    overflow-y: scroll;
+}
+
+#result-table {
+    margin-top: 1rem;
+    border: 0px;
+}
+
+th {
+    text-align: left;
+}
+
+td {
+    text-align: center;
+}
+
+th, td {
+    border: 1px solid gray !important;
+    padding: 0.5rem;
+    min-width: 5.5rem;
+}
+ 
+#modal-background {
     display: none;
     position: fixed;
     top: 0;
