@@ -1,7 +1,7 @@
 {
   "name": "Smarter Smartschool",
   "short_name": "SmarterSS",
-  "version": "5",
+  "version": "5.1",
   "description": "Makes smartschool smarter.",
   "permissions": [
     "activeTab",
@@ -36,12 +36,32 @@
     },
     {
       "matches": [
+        "https://*.smartschool.be/results*"
+      ],
+      "js": [
+        "static/js/jquery-3.4.1.min.js",
+        "BeterResults.js"
+      ],
+      "run_at": "document_end"
+    },
+    {
+      "matches": [
         "https://*.smartschool.be/*"
       ],
       "js": [
         "BeterStyle.js"
       ],
       "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "static/img/icon_128.png"
+      ],
+      "matches": [
+        "https://*.smartschool.be/*"
+      ]
     }
   ],
   "manifest_version": 3
