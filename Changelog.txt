@@ -1,3 +1,6 @@
+5.1:
+-Added a grid view with totals to Resultaten
+
 5.0:
 -Removed custom images
 -Made extension open source
