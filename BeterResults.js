@@ -75,6 +75,7 @@ function makeGrid() {
       }
     }
     for (var period_name of Object.keys(data)) {
+      var grid = $("<div/>").append($("<h2/>").text(period_name + ":"));
       var table = $("<table/>").attr("id", "result-table");
       for (var [course_name, course] of Object.entries(period)) {
         var row = $("<tr/>");
@@ -114,10 +115,10 @@ function makeGrid() {
           }
         }
         row.append(last_cell);
-
         table.append(row);
       }
-      data[period_name] = table;
+      grid.append(table);
+      data[period_name] = grid;
     }
 
     var modal = $("<div/>");
@@ -131,7 +132,9 @@ function makeGrid() {
     }
     console.log(course_to_graphic);
     period_buttons.children().last().click();
-    modal.append(period_buttons);
+    if (period_buttons.children().length > 1) {
+      modal.append(period_buttons);
+    }
     modal.append(main_grid);
     loading.replaceWith(modal);
   })
