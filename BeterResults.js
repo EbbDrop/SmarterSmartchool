@@ -45,10 +45,12 @@ function addButton() {
 function makeGrid() {
   var loading = $("<h3>Loading!</h3>");
   fetch('/results/api/v1/evaluations?itemsOnPage=500').then(r => r.json()).then(results => {
-    console.log(results);
     var data = {};
     var course_to_graphic = {};
     for (const result of results) {
+      if (result["type"] != "normal") {
+        continue;
+      }
       let period = result["period"]["name"];
       if (!(period in data)) {
         data[period] = {};
@@ -130,7 +132,6 @@ function makeGrid() {
         main_grid.append(data[period_name]);
       }));
     }
-    console.log(course_to_graphic);
     period_buttons.children().last().click();
     if (period_buttons.children().length > 1) {
       modal.append(period_buttons);

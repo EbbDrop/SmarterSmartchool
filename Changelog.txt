@@ -1,3 +1,6 @@
+5.2:
+-Fixed grid not loading when non standard evaluations are given
+
 5.1:
 -Added a grid view with totals to Resultaten
 
