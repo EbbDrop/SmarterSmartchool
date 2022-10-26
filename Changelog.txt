@@ -1,3 +1,8 @@
+5.3:
+- Fixed period buttons not working
+- Auto open latest period
+- Improve button style
+
 5.2:
 -Fixed grid not loading when non standard evaluations are given
 
