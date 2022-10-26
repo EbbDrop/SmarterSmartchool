@@ -47,11 +47,15 @@ function makeGrid() {
   fetch('/results/api/v1/evaluations?itemsOnPage=500').then(r => r.json()).then(results => {
     var data = {};
     var course_to_graphic = {};
+    var latest_period = null;
     for (const result of results) {
       if (result["type"] != "normal") {
         continue;
       }
-      let period = result["period"]["name"];
+      var period = result["period"]["name"];
+      if (latest_period === null) {
+        latest_period = period;
+      }
       if (!(period in data)) {
         data[period] = {};
       }
@@ -77,6 +81,8 @@ function makeGrid() {
       }
     }
     for (var period_name of Object.keys(data)) {
+      var period = data[period_name];
+
       var grid = $("<div/>").append($("<h2/>").text(period_name + ":"));
       var table = $("<table/>").attr("id", "result-table");
       for (var [course_name, course] of Object.entries(period)) {
@@ -126,15 +132,22 @@ function makeGrid() {
     var modal = $("<div/>");
     var period_buttons = $("<div/>");
     var main_grid = $("<div/>").attr("id", "table-container");
-    for (var [period_name, _] of Object.entries(data)) {
-      period_buttons.append($("<button/>").text(period_name).click(() => {
-        main_grid.empty();
-        main_grid.append(data[period_name]);
-      }));
+    for (var [period_name, grid] of Object.entries(data)) {
+      // We are using two lambda's sice otherwice they will all use the same scope.
+      period_buttons.append($("<button/>").addClass("period_button").text(period_name).click(((grid) => {
+        return () => {
+          main_grid.empty();
+          main_grid.append(grid);
+        }
+      })(grid)));
     }
-    period_buttons.children().last().click();
     if (period_buttons.children().length > 1) {
+      period_buttons.prepend($("<span/>").text("Select period: "));
       modal.append(period_buttons);
+    }
+
+    if (latest_period !== null) {
+      main_grid.append(data[latest_period])
     }
     modal.append(main_grid);
     loading.replaceWith(modal);
@@ -145,6 +158,25 @@ function makeGrid() {
 function onLoad() {
   var style = document.createElement('style');
   style.innerHTML = `
+
+.period_button {
+  background-color: #ff520e;
+  border-radius: 3px;
+  border-style: none;
+  color: #FFFFFF;
+  margin-right: 0.5rem;
+  padding: 0.4rem;
+  text-align: center;
+  transition: 100ms;
+}
+
+.period_button:hover {
+  background-color: #ef4200;
+}
+
+.period_button:active {
+  background-color: #ff6210;
+}
 
 .total {
     font-weight: bold;
@@ -216,6 +248,21 @@ th, td {
 
 #modal-close {
     float: right;
+  background-color: #ee0000;
+  border-radius: 3px;
+  border-style: none;
+  color: #FFFFFF;
+  padding: 0.4rem;
+  text-align: center;
+  transition: 100ms;
+}
+
+#modal-close:hover {
+  background-color: #dd0000;
+}
+
+#modal-close:active {
+  background-color: #ff0000;
 }
   `;
   document.head.appendChild(style);
