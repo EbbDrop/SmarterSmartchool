@@ -1,3 +1,7 @@
+5.4:
+- Fixed table overflowing container
+- Added disclaimer to table
+
 5.3:
 - Fixed period buttons not working
 - Auto open latest period
