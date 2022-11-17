@@ -71,20 +71,27 @@ function makeGrid() {
       }
     }
 
-    var longest = 0;
-    for (var [_, period] of Object.entries(data)) {
+    for (var period_name of Object.keys(data)) {
+      var period = data[period_name];
+
+      var grid = $("<div/>").attr("id", "period").append($("<h2/>").text(period_name + ":"));
+      var table = $("<table/>").attr("id", "result-table");
+
+      var longest = 0;
       for (var [_, course] of Object.entries(period)) {
         course.sort((a, b) => { return a["date"].localeCompare(b["date"]); })
         if (course.length > longest) {
           longest = course.length;
         }
       }
-    }
-    for (var period_name of Object.keys(data)) {
-      var period = data[period_name];
+      // Add  row for disclamer
+      var disc_row = $("<tr/>");
+      for (var i = 0; i < longest + 1; i++) {
+        disc_row.append($("<td/>").addClass("hidden-cell"));
+      }
+      disc_row.append($("<td/>").attr("id", "disclamer").text("!"))
+      table.append(disc_row);
 
-      var grid = $("<div/>").append($("<h2/>").text(period_name + ":"));
-      var table = $("<table/>").attr("id", "result-table");
       for (var [course_name, course] of Object.entries(period)) {
         var row = $("<tr/>");
         if (course_to_graphic[course_name].type == "icon") {
@@ -125,14 +132,14 @@ function makeGrid() {
         row.append(last_cell);
         table.append(row);
       }
-      grid.append(table);
+      grid.append($("<div/>").attr("id", "table-container").append(table));
       data[period_name] = grid;
     }
 
-    var modal = $("<div/>");
+    var modal = $("<div/>").attr("id", "content-container");
     var period_buttons = $("<div/>");
-    var main_grid = $("<div/>").attr("id", "table-container");
-    for (var [period_name, grid] of Object.entries(data)) {
+    var main_grid = $("<div/>").attr("id", "period-container");
+    for (var [period_name, grid] of Object.entries(data).reverse()) {
       // We are using two lambda's sice otherwice they will all use the same scope.
       period_buttons.append($("<button/>").addClass("period_button").text(period_name).click(((grid) => {
         return () => {
@@ -158,6 +165,36 @@ function makeGrid() {
 function onLoad() {
   var style = document.createElement('style');
   style.innerHTML = `
+
+#disclamer {
+  border: none !important;
+  color: red;
+  font-weight: bold;
+  position: relative;
+}
+
+#disclamer:hover::before {
+  visibility: visible;
+  opacity: 1;
+}
+
+#disclamer::before {
+  content: "Deze totalen kunnen afwijken van uw werkelijke resultaten doordat niet altijd alle gegevens gekend zijn.";
+  position: absolute;
+  left: -20rem;
+  border: 3px solid red;
+  padding: 0.2rem;
+  border-radius: 3px;
+  background-color: white;
+  width: 20rem;
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0s, opacity 0.5s linear;
+}
+
+.hidden-cell {
+  border: none !important;
+}
 
 .period_button {
   background-color: #ff520e;
@@ -187,7 +224,26 @@ function onLoad() {
 }
 
 #table-container {
-    overflow-y: scroll;
+  flex: 1 1 auto;
+  overflow: auto;
+}
+
+#period {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+#period-container {
+  flex: 1;
+  min-height: 0;
+}
+
+#content-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
 }
 
 #result-table {
@@ -247,7 +303,6 @@ th, td {
 }
 
 #modal-close {
-    float: right;
   background-color: #ee0000;
   border-radius: 3px;
   border-style: none;
@@ -255,6 +310,8 @@ th, td {
   padding: 0.4rem;
   text-align: center;
   transition: 100ms;
+  position: absolute;
+  right: 0.5rem;
 }
 
 #modal-close:hover {
