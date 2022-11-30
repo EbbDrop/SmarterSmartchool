@@ -1,10 +1,10 @@
 // Saves options to chrome.storage
 function save_options() {
-    var theme = $('#theme').val();
-    var colorbg = $('#colorbg').val();
-    var colorte = $('#colorte').val();
-    var colortb = $('#colortb').val();
-    var colortt = $('#colortt').val();
+    let theme = $('#theme').val();
+    let colorbg = $('#colorbg').val();
+    let colorte = $('#colorte').val();
+    let colortb = $('#colortb').val();
+    let colortt = $('#colortt').val();
     chrome.storage.sync.set({
         theme: theme,
         colorbg: colorbg,
@@ -19,7 +19,7 @@ function save_options() {
 }
 
 function theme_change(e) {
-    var theme = $('#theme').val();
+    let theme = $('#theme').val();
     if (theme == 'custom') {
         $('#colors').show();
     } else {

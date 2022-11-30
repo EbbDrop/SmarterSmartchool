@@ -1,14 +1,14 @@
-var targetNode = $('#smscMain')[0];
+let targetNode = $('#smscMain')[0];
 
-var callback = function(mutationsList, observer) {
-    for (var mutation of mutationsList) {
+let callback = function(mutationsList, observer) {
+    for (let mutation of mutationsList) {
         if (mutation.type == 'attributes') {
             main()
         }
     }
 };
 
-var observer = new MutationObserver(callback);
+let observer = new MutationObserver(callback);
 
 observer.observe(targetNode, { attributes: true, childList: true, subtree: true });
 
@@ -24,17 +24,17 @@ function main() {
 function calculateTotalList() {
     $('<input>').attr('type', 'hidden').appendTo('.courseEvals');
 
-    var total_numerator = 0;
-    var total_denominator = 0;
+    let total_numerator = 0;
+    let total_denominator = 0;
     $('.courseEvals').children().each(function (e) {
-        var cell = $(this).find('.evalpoint').text();
-        var match = cell.match(/([\d\,\.]+)\/([\d\,\.]+)/);
+        let cell = $(this).find('.evalpoint').text();
+        let match = cell.match(/([\d\,\.]+)\/([\d\,\.]+)/);
         if (match) {
             total_numerator += parseFloat(match[1].replace(',', '.'))
             total_denominator += parseFloat(match[2].replace(',', '.'))
         }
     });
-    var div = $('<div>');
+    let div = $('<div>');
     div.addClass('evals_eval cf');
     div.append(
         $('<div>').addClass('eval_data').append(
@@ -51,22 +51,22 @@ function calculateTotalList() {
 function calculateTotalGrid() {
     $('<input>').attr('type', 'hidden').appendTo('#gridview');
 
-    var rows = $('.grid_course_evals').children();
+    let rows = $('.grid_course_evals').children();
     rows.each(function (e) {
-        var row = $(this);
+        let row = $(this);
 
-        var total_numerator = 0;
-        var total_denominator = 0;
+        let total_numerator = 0;
+        let total_denominator = 0;
         row.children().each(function (e) {
-            var cell = $(this).text();
-            var match = cell.match(/([\d\,\.]+)\/([\d\,\.]+)/);
+            let cell = $(this).text();
+            let match = cell.match(/([\d\,\.]+)\/([\d\,\.]+)/);
             if (match) {
                 total_numerator += parseFloat(match[1].replace(',', '.'))
                 total_denominator += parseFloat(match[2].replace(',', '.'))
             }
         });
 
-        var div = $('<div>');
+        let div = $('<div>');
         div.addClass('course_eval_cell');
         if (total_denominator > 0) {
             if (total_numerator / total_denominator < 0.5) {

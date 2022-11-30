@@ -1,3 +1,8 @@
+5.5
+- Added tooltips when hovering over a result in grid view
+- Made the background color of the close button in the grid view the same as Smartschool's navbar (also works with custom and dark theme)
+- Code cleanup
+
 5.4:
 - Fixed table overflowing container
 - Added disclaimer to table
@@ -8,33 +13,33 @@
 - Improve button style
 
 5.2:
--Fixed grid not loading when non standard evaluations are given
+- Fixed grid not loading when non standard evaluations are given
 
 5.1:
--Added a grid view with totals to Resultaten
+- Added a grid view with totals to Resultaten
 
 5.0:
--Removed custom images
--Made extension open source
+- Removed custom images
+- Made extension open source
 
 4.4:
--Fixed theme in "taken" and player selector for messages.
+- Fixed theme in "taken" and player selector for messages.
 
 4.3:
--Changed name to 'Smarter Smart School'.
--Fixed total grades not apearing when clicking on a notification.
--Fixed typo in image explanation
+- Changed name to 'Smarter Smart School'.
+- Fixed total grades not apearing when clicking on a notification.
+- Fixed typo in image explanation
 
 4.2:
--Added totals to list view
--Fixed themes for password reset
+- Added totals to list view
+- Fixed themes for password reset
 
 4.1:
--Changed defoult dark theme
--Fixed theme for new message dialog
--Fixed totals apearing twice
+- Changed defoult dark theme
+- Fixed theme for new message dialog
+- Fixed totals apearing twice
 
 4.0:
--Aded custum syles: Set your own background and forground color.
--Fixed notifcatino theme
--Code cleanup
+- Aded custum syles: Set your own background and forground color.
+- Fixed notifcatino theme
+- Code cleanup

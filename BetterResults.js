@@ -1,5 +1,5 @@
-var wideToolbarCallback = function(mutationsList, _) {
-  for (var mutation of mutationsList) {
+let wideToolbarCallback = function (mutationsList, _) {
+  for (let mutation of mutationsList) {
     if (mutation.type == 'childList' && mutation.removedNodes.length != 0) {
       for (const node of mutation.removedNodes) {
         if (node.id == "show-grid") {
@@ -10,10 +10,10 @@ var wideToolbarCallback = function(mutationsList, _) {
   }
 };
 
-var wideToolbarObserver = new MutationObserver(wideToolbarCallback);
+let wideToolbarObserver = new MutationObserver(wideToolbarCallback);
 
-var smscMainCallback = function(mutationsList, observer) {
-  for (var mutation of mutationsList) {
+let smscMainCallback = function (mutationsList, observer) {
+  for (let mutation of mutationsList) {
     if (mutation.type == 'childList' && mutation.addedNodes.length == 1 && mutation.addedNodes[0].classList.contains('wide-toolbar')) {
       observer.disconnect();
       wideToolbarObserver.observe($('.wide-toolbar')[0], { attributes: false, childList: true, subtree: false });
@@ -23,7 +23,7 @@ var smscMainCallback = function(mutationsList, observer) {
   }
 };
 
-var smscMainObserver = new MutationObserver(smscMainCallback);
+let smscMainObserver = new MutationObserver(smscMainCallback);
 smscMainObserver.observe($('#smscMain')[0], { attributes: false, childList: true, subtree: false });
 
 function totalToStr(total_numerator, total_denominator) {
@@ -39,20 +39,20 @@ function addButton() {
       ).append(
         $("<span/>").addClass("wide-toolbar__item__name").text("Grid")
       ).click(openGrid)
-  )
+  );
 }
 
 function makeGrid() {
-  var loading = $("<h3>Loading!</h3>");
+  let loading = $("<h3>Loading!</h3>");
   fetch('/results/api/v1/evaluations?itemsOnPage=500').then(r => r.json()).then(results => {
-    var data = {};
-    var course_to_graphic = {};
-    var latest_period = null;
+    let data = {};
+    let course_to_graphic = {};
+    let latest_period = null;
     for (const result of results) {
       if (result["type"] != "normal") {
         continue;
       }
-      var period = result["period"]["name"];
+      let period = result["period"]["name"];
       if (latest_period === null) {
         latest_period = period;
       }
@@ -62,38 +62,38 @@ function makeGrid() {
 
       period = data[period];
       for (const course of result["courses"]) {
-        course_to_graphic[course["name"]] = course["graphic"]
+        course_to_graphic[course["name"]] = course["graphic"];
         const course_name = course["name"];
         if (!(course_name in period)) {
           period[course_name] = [];
         }
-        period[course_name].push({ "date": result["date"], "graphic": result["graphic"] })
+        period[course_name].push({ "date": result["date"], "name": result["name"], "graphic": result["graphic"] });
       }
     }
 
-    for (var period_name of Object.keys(data)) {
-      var period = data[period_name];
+    for (let period_name of Object.keys(data)) {
+      let period = data[period_name];
 
-      var grid = $("<div/>").attr("id", "period").append($("<h2/>").text(period_name + ":"));
-      var table = $("<table/>").attr("id", "result-table");
+      let grid = $("<div/>").attr("id", "period").append($("<h2/>").text(period_name + ":"));
+      let table = $("<table/>").attr("id", "result-table");
 
-      var longest = 0;
-      for (var [_, course] of Object.entries(period)) {
-        course.sort((a, b) => { return a["date"].localeCompare(b["date"]); })
+      let longest = 0;
+      for (let [_, course] of Object.entries(period)) {
+        course.sort((a, b) => { return a["date"].localeCompare(b["date"]); });
         if (course.length > longest) {
           longest = course.length;
         }
       }
-      // Add  row for disclamer
-      var disc_row = $("<tr/>");
-      for (var i = 0; i < longest + 1; i++) {
+      // Add row for disclamer
+      let disc_row = $("<tr/>");
+      for (let i = 0; i < longest + 1; i++) {
         disc_row.append($("<td/>").addClass("hidden-cell"));
       }
-      disc_row.append($("<td/>").attr("id", "disclamer").text("!"))
+      disc_row.append($("<td/>").attr("id", "disclamer").text("!"));
       table.append(disc_row);
 
-      for (var [course_name, course] of Object.entries(period)) {
-        var row = $("<tr/>");
+      for (let [course_name, course] of Object.entries(period)) {
+        let row = $("<tr/>");
         if (course_to_graphic[course_name].type == "icon") {
           row.append($("<th/>").append(
             $("<span/>")
@@ -104,25 +104,27 @@ function makeGrid() {
           row.append($("<th/>").text(course_name));
         }
 
-        var total_numerator = 0;
-        var total_denominator = 0;
+        let total_numerator = 0;
+        let total_denominator = 0;
         for (const result of course) {
           const desc = result["graphic"]["description"];
           const color = result["graphic"]["color"];
-          row.append($("<td/>").addClass("c-" + color + "-combo--100").text(desc));
+          const name = result["name"];
 
-          var match = desc.match(/^([\d\,\.]+)\/([\d\,\.]+)$/);
+          row.append($("<td/>").addClass("c-" + color + "-combo--100").attr({ id: "details", content: name }).text(desc));
+
+          let match = desc.match(/^([\d\,\.]+)\/([\d\,\.]+)$/);
           if (match) {
-            total_numerator += parseFloat(match[1].replace(',', '.'))
-            total_denominator += parseFloat(match[2].replace(',', '.'))
+            total_numerator += parseFloat(match[1].replace(',', '.'));
+            total_denominator += parseFloat(match[2].replace(',', '.'));
           }
         }
 
-        for (var i = 0; i < longest - course.length; i++) {
+        for (let i = 0; i < longest - course.length; i++) {
           row.append($("<td/>"));
         }
 
-        var last_cell = $("<td/>").addClass("total");
+        let last_cell = $("<td/>").addClass("total");
         if (total_denominator != 0) {
           last_cell.text(totalToStr(total_numerator, total_denominator));
           if (total_numerator / total_denominator < 0.5) {
@@ -136,16 +138,16 @@ function makeGrid() {
       data[period_name] = grid;
     }
 
-    var modal = $("<div/>").attr("id", "content-container");
-    var period_buttons = $("<div/>");
-    var main_grid = $("<div/>").attr("id", "period-container");
-    for (var [period_name, grid] of Object.entries(data).reverse()) {
+    let modal = $("<div/>").attr("id", "content-container");
+    let period_buttons = $("<div/>");
+    let main_grid = $("<div/>").attr("id", "period-container");
+    for (let [period_name, grid] of Object.entries(data).reverse()) {
       // We are using two lambda's sice otherwice they will all use the same scope.
       period_buttons.append($("<button/>").addClass("period_button").text(period_name).click(((grid) => {
         return () => {
           main_grid.empty();
           main_grid.append(grid);
-        }
+        };
       })(grid)));
     }
     if (period_buttons.children().length > 1) {
@@ -154,16 +156,16 @@ function makeGrid() {
     }
 
     if (latest_period !== null) {
-      main_grid.append(data[latest_period])
+      main_grid.append(data[latest_period]);
     }
     modal.append(main_grid);
     loading.replaceWith(modal);
-  })
+  });
   return loading;
 }
 
 function onLoad() {
-  var style = document.createElement('style');
+  let style = document.createElement('style');
   style.innerHTML = `
 
 #disclamer {
@@ -190,6 +192,34 @@ function onLoad() {
   visibility: hidden;
   opacity: 0;
   transition: visibility 0s, opacity 0.5s linear;
+}
+
+#details {
+  position: relative;
+}
+
+#details:hover::before {
+  visibility: visible;
+  opacity: 0.9;
+}
+
+#details::before {
+  content: attr(content);
+  color: white;
+  background-color: #1a1a1a;
+  margin-left: -60px;
+  visibility: hidden;
+  position: absolute;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity .6s;
+  width: 240px;
+  top: 100%;
+  left: 50%;
+  margin-left: -120px;
 }
 
 .hidden-cell {
@@ -303,7 +333,7 @@ th, td {
 }
 
 #modal-close {
-  background-color: #ee0000;
+  background-color: var(--background-color);
   border-radius: 3px;
   border-style: none;
   color: #FFFFFF;
@@ -315,25 +345,31 @@ th, td {
 }
 
 #modal-close:hover {
-  background-color: #dd0000;
+  opacity: 0.8;
 }
 
 #modal-close:active {
-  background-color: #ff0000;
+  background-color: var(--background-color);
 }
   `;
   document.head.appendChild(style);
 
-  $("body").append(
-    $("<div/>").attr("id", "modal-background")
-  ).append(
-    $("<div/>").attr("id", "modal-content").append(
-      $("<button/>").attr("id", "modal-close").text("Close")
-    ).append(makeGrid())
-  )
+  chrome.storage.sync.get({
+    theme: 'light',
+    colortb: '#FF520E',
+  }, function (items) {
+    const color = items.theme === 'light' ? '#FF520E' : items.theme === 'dark' ? '#333333' : items.colortb;
+    $("body").append(
+      $("<div/>").attr("id", "modal-background")
+    ).append(
+      $("<div/>").attr("id", "modal-content").append(
+        $("<button/>").attr("id", "modal-close").css('--background-color', color).text("Close")
+      ).append(makeGrid())
+    );
 
-  $("#modal-background, #modal-close").click(function() {
-    $("#modal-content, #modal-background").toggleClass("active");
+    $("#modal-background, #modal-close").click(function () {
+      $("#modal-content, #modal-background").toggleClass("active");
+    });
   });
 }
 
