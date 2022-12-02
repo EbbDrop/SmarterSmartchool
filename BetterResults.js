@@ -181,6 +181,7 @@ function onLoad() {
 }
 
 #disclamer::before {
+  z-index: 1;
   content: "Deze totalen kunnen afwijken van uw werkelijke resultaten doordat niet altijd alle gegevens gekend zijn.";
   position: absolute;
   left: -20rem;
@@ -204,22 +205,21 @@ function onLoad() {
 }
 
 #details::before {
+  z-index: 2;
   content: attr(content);
   color: white;
   background-color: #1a1a1a;
-  margin-left: -60px;
   visibility: hidden;
   position: absolute;
   text-align: center;
-  padding: 5px 0;
-  border-radius: 6px;
-  z-index: 1;
+  padding: 0.313rem 0;
+  border-radius: 0.375rem;
   opacity: 0;
   transition: opacity .6s;
-  width: 240px;
+  width: 15rem;
   top: 100%;
   left: 50%;
-  margin-left: -120px;
+  margin-left: -7.5rem;
 }
 
 .hidden-cell {
