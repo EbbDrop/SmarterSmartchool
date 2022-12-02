@@ -333,7 +333,7 @@ th, td {
 }
 
 #modal-close {
-  background-color: #ee0000;
+  background-color: var(--background-color);
   border-radius: 3px;
   border-style: none;
   color: #FFFFFF;
@@ -343,25 +343,33 @@ th, td {
   position: absolute;
   right: 0.5rem;
 }
+
 #modal-close:hover {
-  background-color: #dd0000;
+  opacity: 0.8;
 }
+
 #modal-close:active {
-  background-color: #ff0000;
+  background-color: var(--background-color);
 }
   `;
   document.head.appendChild(style);
 
-  $("body").append(
-    $("<div/>").attr("id", "modal-background")
-  ).append(
-    $("<div/>").attr("id", "modal-content").append(
-      $("<button/>").attr("id", "modal-close").text("Close")
-    ).append(makeGrid())
-  )
+  chrome.storage.sync.get({
+    theme: 'light',
+    colortb: '#FF520E',
+  }, function (items) {
+    const color = items.theme === 'light' ? '#FF520E' : items.theme === 'dark' ? '#333333' : items.colortb;
+    $("body").append(
+      $("<div/>").attr("id", "modal-background")
+    ).append(
+      $("<div/>").attr("id", "modal-content").append(
+        $("<button/>").attr("id", "modal-close").css('--background-color', color).text("Close")
+      ).append(makeGrid())
+    );
 
-  $("#modal-background, #modal-close").click(function() {
-    $("#modal-content, #modal-background").toggleClass("active");
+    $("#modal-background, #modal-close").click(function () {
+      $("#modal-content, #modal-background").toggleClass("active");
+    });
   });
 }
 
