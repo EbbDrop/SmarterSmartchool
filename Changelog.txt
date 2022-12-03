@@ -1,6 +1,5 @@
 5.5
 - Added tooltips when hovering over a result in grid view
-- Made the background color of the close button in the grid view the same as Smartschool's navbar (also works with custom and dark theme)
 - Code cleanup
 
 5.4:
