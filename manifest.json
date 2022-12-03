@@ -1,8 +1,8 @@
 {
   "name": "Smarter Smartschool",
   "short_name": "SmarterSS",
-  "version": "5.4",
-  "description": "Makes smartschool smarter.",
+  "version": "5.5",
+  "description": "Makes Smartschool smarter.",
   "permissions": [
     "activeTab",
     "storage",
@@ -30,7 +30,7 @@
       ],
       "js": [
         "static/js/jquery-3.4.1.min.js",
-        "BeterGrades.js"
+        "BetterGrades.js"
       ],
       "run_at": "document_end"
     },
@@ -40,7 +40,7 @@
       ],
       "js": [
         "static/js/jquery-3.4.1.min.js",
-        "BeterResults.js"
+        "BetterResults.js"
       ],
       "run_at": "document_end"
     },
@@ -49,7 +49,7 @@
         "https://*.smartschool.be/*"
       ],
       "js": [
-        "BeterStyle.js"
+        "BetterStyle.js"
       ],
       "run_at": "document_start"
     }
