@@ -168,7 +168,7 @@ function onLoad() {
   let style = document.createElement('style');
   style.innerHTML = `
 
-#disclamer {
+#result-table #disclamer {
   border: none !important;
   color: red;
   font-weight: bold;
@@ -222,7 +222,7 @@ function onLoad() {
   margin-left: -7.5rem;
 }
 
-.hidden-cell {
+#result-table .hidden-cell {
   border: none !important;
 }
 
