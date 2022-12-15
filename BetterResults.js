@@ -1,4 +1,4 @@
-let wideToolbarCallback = function (mutationsList, _) {
+let wideToolbarCallback = function(mutationsList, _) {
   for (let mutation of mutationsList) {
     if (mutation.type == 'childList' && mutation.removedNodes.length != 0) {
       for (const node of mutation.removedNodes) {
@@ -12,7 +12,7 @@ let wideToolbarCallback = function (mutationsList, _) {
 
 let wideToolbarObserver = new MutationObserver(wideToolbarCallback);
 
-let smscMainCallback = function (mutationsList, observer) {
+let smscMainCallback = function(mutationsList, observer) {
   for (let mutation of mutationsList) {
     if (mutation.type == 'childList' && mutation.addedNodes.length == 1 && mutation.addedNodes[0].classList.contains('wide-toolbar')) {
       observer.disconnect();
@@ -281,15 +281,15 @@ function onLoad() {
     border: 0px;
 }
 
-th {
+#result-table th {
     text-align: left;
 }
 
-td {
+#result-table td {
     text-align: center;
 }
 
-th, td {
+#result-table th, #result-table td {
     border: 1px solid gray !important;
     padding: 0.5rem;
     min-width: 5.5rem;
