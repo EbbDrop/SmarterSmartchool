@@ -1,3 +1,6 @@
+5.6
+- Fixed styling to not interfere with Smartschools own table
+
 5.5
 - Added tooltips when hovering over a result in grid view
 - Code cleanup
