@@ -192,33 +192,33 @@ function onLoad() {
     let style = document.createElement('style');
     style.innerHTML = `
 
-#disclamer {
-  border: none !important;
-  color: red;
-  font-weight: bold;
-  position: relative;
+#result-table #disclamer {
+    border: none !important;
+    color: red;
+    font-weight: bold;
+    position: relative;
 }
-
+    
 #disclamer:hover::before {
-  visibility: visible;
-  opacity: 1;
+    visibility: visible;
+    opacity: 1;
 }
-
+    
 #disclamer::before {
-  z-index: 1;
-  content: "Deze totalen kunnen afwijken van uw werkelijke resultaten doordat niet altijd alle gegevens gekend zijn.";
-  position: absolute;
-  left: -20rem;
-  border: 3px solid red;
-  padding: 0.2rem;
-  border-radius: 3px;
-  background-color: white;
-  width: 20rem;
-  visibility: hidden;
-  opacity: 0;
-  transition: visibility 0s, opacity 0.5s linear;
+    z-index: 1;
+    content: "Deze totalen kunnen afwijken van uw werkelijke resultaten doordat niet altijd alle gegevens gekend zijn.";
+    position: absolute;
+    left: -20rem;
+    border: 3px solid red;
+    padding: 0.2rem;
+    border-radius: 3px;
+    background-color: white;
+    width: 20rem;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.5s linear;
 }
-
+    
 #details {
   position: relative;
 }
@@ -246,7 +246,7 @@ function onLoad() {
   margin-left: -7.5rem;
 }
 
-.hidden-cell {
+#result-table .hidden-cell {
   border: none !important;
 }
 
@@ -305,15 +305,15 @@ function onLoad() {
     border: 0px;
 }
 
-th {
+#result-table th {
     text-align: left;
 }
 
-td {
+#result-table td {
     text-align: center;
 }
 
-th, td {
+#result-table th, #result-table td {
     border: 1px solid gray !important;
     padding: 0.5rem;
     min-width: 5.5rem;
@@ -373,7 +373,7 @@ th, td {
 #modal-close:active {
   background-color: #ff0000;
 }
-  `;
+    `;
     document.head.appendChild(style);
 
     $("body").append(
