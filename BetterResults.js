@@ -1,4 +1,4 @@
-let wideToolbarCallback = function(mutationsList, _) {
+let wideToolbarCallback = function (mutationsList, _) {
   for (let mutation of mutationsList) {
     if (mutation.type == 'childList' && mutation.removedNodes.length != 0) {
       for (const node of mutation.removedNodes) {
@@ -12,7 +12,7 @@ let wideToolbarCallback = function(mutationsList, _) {
 
 let wideToolbarObserver = new MutationObserver(wideToolbarCallback);
 
-let smscMainCallback = function(mutationsList, observer) {
+let smscMainCallback = function (mutationsList, observer) {
   for (let mutation of mutationsList) {
     if (mutation.type == 'childList' && mutation.addedNodes.length == 1 && mutation.addedNodes[0].classList.contains('wide-toolbar')) {
       observer.disconnect();
@@ -92,6 +92,9 @@ function makeGrid() {
       disc_row.append($("<td/>").attr("id", "disclamer").text("!"));
       table.append(disc_row);
 
+      let overallTotalNumerator = 0;
+      let overallTotalDenominator = 0;
+
       for (let [course_name, course] of Object.entries(period)) {
         let row = $("<tr/>");
         if (course_to_graphic[course_name].type == "icon") {
@@ -106,6 +109,7 @@ function makeGrid() {
 
         let total_numerator = 0;
         let total_denominator = 0;
+
         for (const result of course) {
           const desc = result["graphic"]["description"];
           const color = result["graphic"]["color"];
@@ -132,8 +136,28 @@ function makeGrid() {
           }
         }
         row.append(last_cell);
+
+        overallTotalNumerator += total_numerator;
+        overallTotalDenominator += total_denominator;
+
         table.append(row);
       }
+
+      let overallTotalRow = $("<tr/>");
+      overallTotalRow.append($("<th/>").text("Total"));
+      for (let i = 0; i < longest; i++) {
+        overallTotalRow.append($("<td/>"));
+      }
+      let overallTotalCell = $("<td/>").addClass("total");
+      if (overallTotalDenominator != 0) {
+        overallTotalCell.text(totalToStr(overallTotalNumerator, overallTotalDenominator));
+        if (overallTotalNumerator / overallTotalDenominator < 0.5) {
+          overallTotalCell.addClass('is-low');
+        }
+      }
+      overallTotalRow.append(overallTotalCell);
+      table.append(overallTotalRow);
+
       grid.append($("<div/>").attr("id", "table-container").append(table));
       data[period_name] = grid;
     }
@@ -169,32 +193,32 @@ function onLoad() {
   style.innerHTML = `
 
 #result-table #disclamer {
-  border: none !important;
-  color: red;
-  font-weight: bold;
-  position: relative;
+    border: none !important;
+    color: red;
+    font-weight: bold;
+    position: relative;
 }
-
+    
 #disclamer:hover::before {
-  visibility: visible;
-  opacity: 1;
+    visibility: visible;
+    opacity: 1;
 }
-
+    
 #disclamer::before {
-  z-index: 1;
-  content: "Deze totalen kunnen afwijken van uw werkelijke resultaten doordat niet altijd alle gegevens gekend zijn.";
-  position: absolute;
-  left: -20rem;
-  border: 3px solid red;
-  padding: 0.2rem;
-  border-radius: 3px;
-  background-color: white;
-  width: 20rem;
-  visibility: hidden;
-  opacity: 0;
-  transition: visibility 0s, opacity 0.5s linear;
+    z-index: 1;
+    content: "Deze totalen kunnen afwijken van uw werkelijke resultaten doordat niet altijd alle gegevens gekend zijn.";
+    position: absolute;
+    left: -20rem;
+    border: 3px solid red;
+    padding: 0.2rem;
+    border-radius: 3px;
+    background-color: white;
+    width: 20rem;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.5s linear;
 }
-
+    
 #details {
   position: relative;
 }
@@ -349,7 +373,7 @@ function onLoad() {
 #modal-close:active {
   background-color: #ff0000;
 }
-  `;
+    `;
   document.head.appendChild(style);
 
   $("body").append(
@@ -358,9 +382,9 @@ function onLoad() {
     $("<div/>").attr("id", "modal-content").append(
       $("<button/>").attr("id", "modal-close").text("Close")
     ).append(makeGrid())
-  )
+  );
 
-  $("#modal-background, #modal-close").click(function() {
+  $("#modal-background, #modal-close").click(function () {
     $("#modal-content, #modal-background").toggleClass("active");
   });
 }
