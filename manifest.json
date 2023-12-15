@@ -1,7 +1,7 @@
 {
   "name": "Smarter Smartschool",
   "short_name": "SmarterSS",
-  "version": "5.7",
+  "version": "5.8",
   "description": "Makes Smartschool smarter.",
   "permissions": [
     "activeTab",

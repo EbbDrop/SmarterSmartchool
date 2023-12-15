@@ -1,3 +1,6 @@
+5.8
+- Add compatibility with Smartschool++ (https://chromewebstore.google.com/detail/smartschool++/bdhficnphioomdjhdfbhdepjgggekodf)
+
 5.7
 - Add total row (by Iliannnn)
 
