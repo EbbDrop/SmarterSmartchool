@@ -1,3 +1,6 @@
+5.7
+- Add total row (by Iliannnn)
+
 5.6
 - Fixed styling to not interfere with Smartschools own table
 
