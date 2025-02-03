@@ -115,7 +115,7 @@ function makeGrid() {
           const color = result["graphic"]["color"];
           const name = result["name"];
 
-          row.append($("<td/>").addClass("c-" + color + "-combo--100").attr({ id: "details", content: name }).text(desc));
+          row.append($("<td/>").addClass("c-" + color + "-combo--300").attr({ id: "details", content: name }).text(desc));
 
           let match = desc.match(/^([\d\,\.]+)\/([\d\,\.]+)$/);
           if (match) {
