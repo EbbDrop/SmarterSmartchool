@@ -1,3 +1,6 @@
+5.9
+- Update grid colors to work better with dark themes (by JJorne-JDEVJ)
+
 5.8
 - Add compatibility with Smartschool++ (https://chromewebstore.google.com/detail/smartschool++/bdhficnphioomdjhdfbhdepjgggekodf)
 
