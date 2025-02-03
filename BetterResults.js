@@ -114,8 +114,12 @@ function makeGrid() {
           const desc = result["graphic"]["description"];
           const color = result["graphic"]["color"];
           const name = result["name"];
+          let cellDesc = desc || "-/-";  // If desc is empty, use "-/-"
 
-          row.append($("<td/>").addClass("c-" + color + "-combo--300").attr({ id: "details", content: name }).text(desc));
+          row.append($("<td/>")
+          .addClass("c-" + color + "-combo--300")
+          .attr({ id: "details", content: name })
+          .text(cellDesc));
 
           let match = desc.match(/^([\d\,\.]+)\/([\d\,\.]+)$/);
           if (match) {
