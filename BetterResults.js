@@ -114,7 +114,7 @@ function makeGrid() {
           const desc = result["graphic"]["description"];
           const color = result["graphic"]["color"];
           const name = result["name"];
-          let cellDesc = desc || "-/-";  // If desc is empty, use "-/-"
+          let cellDesc = desc || "/";  // If desc is empty, use "-/-"
 
           row.append($("<td/>")
           .addClass("c-" + color + "-combo--300")
