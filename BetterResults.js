@@ -1,9 +1,12 @@
+const sidebar_selector = ".sidebar-results>:first-child";
+
 let wideToolbarCallback = function (mutationsList, _) {
   for (let mutation of mutationsList) {
     if (mutation.type == 'childList' && mutation.removedNodes.length != 0) {
       for (const node of mutation.removedNodes) {
         if (node.id == "show-grid") {
-          $(".wide-toolbar").append(node);
+          console.log("Readding grid afther smartschool removed it");
+          addButton();
         }
       }
     }
@@ -14,9 +17,9 @@ let wideToolbarObserver = new MutationObserver(wideToolbarCallback);
 
 let smscMainCallback = function (mutationsList, observer) {
   for (let mutation of mutationsList) {
-    if (mutation.type == 'childList' && mutation.addedNodes.length == 1 && mutation.addedNodes[0].classList.contains('wide-toolbar')) {
+    if (mutation.type == 'childList' && mutation.addedNodes.length == 1 && mutation.addedNodes[0].classList.contains('sidebar-results')) {
       observer.disconnect();
-      wideToolbarObserver.observe($('.wide-toolbar')[0], { attributes: false, childList: true, subtree: false });
+      wideToolbarObserver.observe($(sidebar_selector)[0], { attributes: false, childList: true, subtree: false });
       onLoad();
       addButton();
     }
@@ -31,13 +34,15 @@ function totalToStr(total_numerator, total_denominator) {
 }
 
 function addButton() {
-  $(".wide-toolbar").append(
+  $(sidebar_selector).append(
     $("<button/>")
       .attr("id", "show-grid")
-      .addClass("wide-toolbar__item").append(
-        $("<img/>").addClass("wide-toolbar__item__icon").attr("src", chrome.runtime.getURL("static/img/icon_128.png"))
+      .addClass("optionWrapper-IEDUX")
+      .addClass("button-mJfIq")
+      .append(
+        $("<img/>").addClass("icon-dus_u").attr("src", chrome.runtime.getURL("static/img/icon_128.png")).attr("width", 24).attr("height", 24).attr("id", "show-grid-icon")
       ).append(
-        $("<span/>").addClass("wide-toolbar__item__name").text("Grid")
+        $("<span/>").addClass("label-dOebJ").text("Grid").attr("id", "show-grid-label")
       ).click(openGrid)
   );
 }
@@ -376,6 +381,23 @@ function onLoad() {
 }
 #modal-close:active {
   background-color: #ff0000;
+}
+
+#show-grid {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 48px;
+  transition-property: background-color,height,border-color,box-shadow;
+  transition-duration: .15s;
+  overflow: hidden;
+  border-radius: .66666667rem;
+  border: 1px solid transparent;
+  padding: 0 .83333333rem;
+}
+
+#show-grid-icon {
+  margin-right: .83333333rem;
 }
     `;
   document.head.appendChild(style);
