@@ -1,3 +1,7 @@
+5.10
+- Improve the way Smartschool++ detection works (by JJorne-JDEVJ)
+- Fix for the new smartschool sidebar as of 06/01
+
 5.9
 - Update grid colors to work better with dark themes (by JJorne-JDEVJ)
 
