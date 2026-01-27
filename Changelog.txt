@@ -1,3 +1,6 @@
+5.11
+- Make sidebar injection more robust for smartschool changes
+
 5.10
 - Improve the way Smartschool++ detection works (by JJorne-JDEVJ)
 - Fix for the new smartschool sidebar as of 06/01

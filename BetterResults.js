@@ -16,14 +16,9 @@ let wideToolbarCallback = function (mutationsList, _) {
 let wideToolbarObserver = new MutationObserver(wideToolbarCallback);
 
 let smscMainCallback = function (mutationsList, observer) {
-  for (let mutation of mutationsList) {
-    if (mutation.type == 'childList' && mutation.addedNodes.length == 1 && mutation.addedNodes[0].classList.contains('sidebar-results')) {
-      observer.disconnect();
-      wideToolbarObserver.observe($(sidebar_selector)[0], { attributes: false, childList: true, subtree: false });
-      onLoad();
-      addButton();
-    }
-  }
+  wideToolbarObserver.observe($(sidebar_selector)[0], { attributes: false, childList: true, subtree: false });
+  onLoad();
+  addButton();
 };
 
 let smscMainObserver = new MutationObserver(smscMainCallback);
@@ -34,6 +29,12 @@ function totalToStr(total_numerator, total_denominator) {
 }
 
 function addButton() {
+  console.log("Added button");
+  if (document.getElementById("show-grid")) {
+    console.log("Skiped");
+    return;
+  }
+
   $(sidebar_selector).append(
     $("<button/>")
       .attr("id", "show-grid")
@@ -45,6 +46,7 @@ function addButton() {
         $("<span/>").addClass("label-dOebJ").text("Grid").attr("id", "show-grid-label")
       ).click(openGrid)
   );
+  console.log("Added button");
 }
 
 function makeGrid() {
@@ -198,7 +200,11 @@ function makeGrid() {
 }
 
 function onLoad() {
+  if (document.getElementById("grid-style")) {
+    return;
+  }
   let style = document.createElement('style');
+  style.id = "grid-style";
   style.innerHTML = `
 
 #result-table #disclamer {
