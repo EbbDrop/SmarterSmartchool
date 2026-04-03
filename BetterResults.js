@@ -304,7 +304,7 @@ function makeGrid() {
         }
 
         let overallTotalRow = $("<tr/>");
-        overallTotalRow.append($("<th/>").text("Total"));
+        overallTotalRow.append($("<th/>").text("Totaal"));
         for (let i = 0; i < longest; i++) {
           overallTotalRow.append($("<td/>"));
         }
@@ -332,42 +332,105 @@ function makeGrid() {
       }
 
       let modal = $("<div/>").attr("id", "content-container");
-      let period_buttons = $("<div/>").addClass("period-selector");
+      let period_picker = $("<div/>").addClass("period-picker");
+      let period_header = $("<div/>").addClass("period-header");
+      let period_active_label = $("<span/>")
+        .addClass("period-active-label")
+        .text("Overzicht");
+      let period_dropdown = $("<div/>").addClass("period-dropdown");
+      let period_toggle = $("<button/>")
+        .attr("type", "button")
+        .addClass("period-toggle")
+        .text("Overzicht")
+        .append($("<span/>").addClass("period-caret").text("▼"));
+      let period_menu = $("<div/>").addClass("period-menu");
       let main_grid = $("<div/>").attr("id", "period-container");
-      let isFirst = true;
 
       // Keep reverse order but put "Overzicht" first
       let ordered_periods = ["Overzicht", ...Object.keys(data).reverse()];
+      let selected_period = "Overzicht";
+
+      function renderPeriodButtonLabel() {
+        const labelText = selected_period || "Selecteer periode";
+        period_toggle.contents().first()[0].textContent = labelText + " ";
+        period_active_label.text(labelText);
+      }
+
+      function renderSelectedPeriods() {
+        main_grid.empty();
+        if (selected_period && grids[selected_period]) {
+          main_grid.append(grids[selected_period].clone(true, true));
+        }
+      }
 
       for (let period_name of ordered_periods) {
-        let grid = grids[period_name];
-        // We are using two lambda's sice otherwice they will all use the same scope.
-        let btn = $("<button/>")
-          .addClass("period_button")
-          .text(period_name)
-          .click(
-            ((grid) => {
-              return function () {
-                $(".period_button").removeClass("active-period");
-                $(this).addClass("active-period");
-                main_grid.empty();
-                main_grid.append(grid);
-              };
-            })(grid),
+        let option_row = $("<label/>")
+          .addClass("period-option")
+          .append(
+            $("<input/>")
+              .attr("type", "radio")
+              .attr("name", "period-selection")
+              .addClass("period-radio")
+              .attr("data-period", period_name)
+              .prop("checked", period_name === "Overzicht"),
+          )
+          .append(
+            $("<span/>").addClass("period-option-label").text(period_name),
           );
-        if (isFirst) {
-          btn.addClass("active-period");
-          isFirst = false;
-        }
-        period_buttons.append(btn);
-      }
-      if (period_buttons.children().length > 1) {
-        modal.append(period_buttons);
+        period_menu.append(option_row);
       }
 
-      if (ordered_periods.length > 0) {
-        main_grid.append(grids[ordered_periods[0]]);
+      period_menu.on("change", ".period-radio", function () {
+        const period_name = $(this).attr("data-period");
+        selected_period = period_name;
+        renderPeriodButtonLabel();
+        renderSelectedPeriods();
+        period_dropdown.removeClass("open");
+      });
+
+      function positionPeriodMenu() {
+        const rect = period_toggle[0].getBoundingClientRect();
+        period_menu.css({
+          top: rect.bottom + 6 + "px",
+          left: rect.left + "px",
+          width: Math.max(rect.width, 240) + "px",
+        });
       }
+
+      period_toggle.on("click", function (e) {
+        e.stopPropagation();
+        const willOpen = !period_dropdown.hasClass("open");
+        period_dropdown.toggleClass("open");
+        if (willOpen) {
+          positionPeriodMenu();
+        }
+      });
+
+      $(window).on("resize scroll", function () {
+        if (period_dropdown.hasClass("open")) {
+          positionPeriodMenu();
+        }
+      });
+
+      $(document).on("click", function () {
+        period_dropdown.removeClass("open");
+      });
+
+      period_menu.on("click", function (e) {
+        e.stopPropagation();
+      });
+
+      period_header.append(
+        period_dropdown.append(period_toggle, period_menu),
+        period_active_label,
+      );
+      period_picker.append(period_header);
+      if (ordered_periods.length > 1) {
+        modal.append(period_picker);
+      }
+
+      renderPeriodButtonLabel();
+      renderSelectedPeriods();
       modal.append(main_grid);
       loading.replaceWith(modal);
     });
@@ -417,35 +480,113 @@ function onLoad() {
   margin-left: -7.5rem;
 }
 
-.period-selector {
+.period-picker {
+  margin-bottom: 0.9rem;
+}
+
+.period-header {
   display: flex;
-  border-bottom: 2px solid #e0e0e0;
-  margin-bottom: 1rem;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
 }
 
-.period_button {
-  background-color: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  color: #777;
-  padding: 0.5rem 1.5rem;
-  font-weight: 600;
+.period-active-label {
   font-size: 1rem;
-  text-align: center;
-  transition: color 0.2s ease, border-color 0.2s ease;
+  font-weight: 700;
+  color: #4a4a4a;
+}
+
+.period-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.period-toggle {
+  background-color: #f3c000;
+  border: 1px solid #c39d00;
+  color: #1f1f1f;
+  border-radius: 0.45rem;
+  padding: 0.4rem 0.7rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.2;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.period-toggle:hover {
+  background-color: #efbc00;
+}
+
+.period-toggle:active {
+  background-color: #e3b100;
+}
+
+.period-caret {
+  font-size: 0.72rem;
+  color: #2f2f2f;
+}
+
+.period-menu {
+  display: none;
+  position: fixed;
+  min-width: 260px;
+  max-height: min(360px, 62vh);
+  overflow: auto;
+  background: #f7f7f7;
+  border: 1px solid #cfcfcf;
+  border-radius: 0.3rem;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  z-index: 2001;
+  padding: 0.4rem 0.6rem 0.4rem 0.4rem;
+}
+
+.period-dropdown.open .period-menu {
+  display: block;
+}
+
+.period-option {
+  display: flex;
+  align-items: left;
+  gap: 0.62rem;
+  padding: 0.52rem 0.72rem;
+  min-height: 2.2rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.period-option:hover {
+  background-color: #ececec;
+}
+
+.period-option input[type="radio"] {
   margin: 0;
-  margin-bottom: -2px;
+  width: 0.98rem;
+  height: 0.98rem;
+  accent-color: #FF520E;
+  flex: 0 0 auto;
 }
 
-.period_button:hover {
-  color: #ff520e;
+.period-option-label {
+  color: #444;
+  font-size: 0.96rem;
+  font-weight: 500;
 }
 
-.period_button.active-period {
-  color: #ff520e;
-  border-bottom: 2px solid #ff520e;
+.period-option:has(input[type="radio"]:checked) {
+  background-color: #B8B8B8;
 }
+
+.period-option:has(input[type="radio"]:checked) .period-option-label {
+  color: #2a2a2a;
+  font-weight: 700;
+}
+
+
 
 .total {
     font-weight: bold;
@@ -458,6 +599,7 @@ function onLoad() {
 #table-container {
   flex: 1 1 auto;
   overflow: auto;
+  min-width: 0;
 }
 
 #period {
