@@ -105,6 +105,124 @@ function makeGrid() {
         }
       }
 
+      let grids = {};
+      let all_subjects = new Set();
+      for (let period_name of Object.keys(data)) {
+        for (let course of Object.keys(data[period_name])) {
+          all_subjects.add(course);
+        }
+      }
+      all_subjects = Array.from(all_subjects).sort();
+      let all_periods = Object.keys(data);
+
+      let summary_grid = $("<div/>")
+        .attr("id", "period")
+        .append($("<h2/>").text("Overzicht:"));
+      let summary_table = $("<table/>").attr("id", "result-table");
+
+      let sum_header = $("<tr/>");
+      sum_header.append($("<th/>").text("Vak"));
+      for (let period_name of all_periods) {
+        sum_header.append($("<th/>").text(period_name));
+      }
+      sum_header.append($("<th/>").text("Totaal"));
+      summary_table.append(sum_header);
+
+      let period_totals = {};
+      for (let period_name of all_periods) {
+        period_totals[period_name] = { num: 0, den: 0 };
+      }
+      let grand_total_num = 0;
+      let grand_total_den = 0;
+
+      for (let course_name of all_subjects) {
+        let row = $("<tr/>");
+
+        if (
+          course_name in course_to_graphic &&
+          course_to_graphic[course_name].type == "icon"
+        ) {
+          row.append(
+            $("<th/>").append(
+              $("<span/>")
+                .addClass(
+                  "icon-label icon-label--24 smsc-svg--" +
+                    course_to_graphic[course_name]["value"] +
+                    "--24",
+                )
+                .text(course_name),
+            ),
+          );
+        } else {
+          row.append($("<th/>").text(course_name));
+        }
+
+        let subj_total_num = 0;
+        let subj_total_den = 0;
+
+        for (let period_name of all_periods) {
+          let p_num = 0;
+          let p_den = 0;
+          if (data[period_name] && data[period_name][course_name]) {
+            for (let result of data[period_name][course_name]) {
+              let desc = result["graphic"]["description"];
+              let match = desc.match(/^([\d\,\.]+)\/([\d\,\.]+)$/);
+              if (match) {
+                p_num += parseFloat(match[1].replace(",", "."));
+                p_den += parseFloat(match[2].replace(",", "."));
+              }
+            }
+          }
+
+          let cell = $("<td/>");
+          if (p_den != 0) {
+            cell.text(totalToStr(p_num, p_den));
+            if (p_num / p_den < 0.5) cell.addClass("is-low");
+            subj_total_num += p_num;
+            subj_total_den += p_den;
+            period_totals[period_name].num += p_num;
+            period_totals[period_name].den += p_den;
+          }
+          row.append(cell);
+        }
+
+        let tot_cell = $("<td/>").addClass("total");
+        if (subj_total_den != 0) {
+          tot_cell.text(totalToStr(subj_total_num, subj_total_den));
+          if (subj_total_num / subj_total_den < 0.5)
+            tot_cell.addClass("is-low");
+          grand_total_num += subj_total_num;
+          grand_total_den += subj_total_den;
+        }
+        row.append(tot_cell);
+        summary_table.append(row);
+      }
+
+      let overallRow = $("<tr/>");
+      overallRow.append($("<th/>").text("Totaal"));
+      for (let period_name of all_periods) {
+        let cell = $("<td/>").addClass("total");
+        if (period_totals[period_name].den != 0) {
+          let p_num = period_totals[period_name].num;
+          let p_den = period_totals[period_name].den;
+          cell.text(totalToStr(p_num, p_den));
+          if (p_num / p_den < 0.5) cell.addClass("is-low");
+        }
+        overallRow.append(cell);
+      }
+      let grandTotCell = $("<td/>").addClass("total");
+      if (grand_total_den != 0) {
+        grandTotCell.text(totalToStr(grand_total_num, grand_total_den));
+        if (grand_total_num / grand_total_den < 0.5)
+          grandTotCell.addClass("is-low");
+      }
+      overallRow.append(grandTotCell);
+      summary_table.append(overallRow);
+      summary_grid.append(
+        $("<div/>").attr("id", "table-container").append(summary_table),
+      );
+      grids["Overzicht"] = summary_grid;
+
       for (let period_name of Object.keys(data)) {
         let period = data[period_name];
 
@@ -210,14 +328,19 @@ function makeGrid() {
               "Deze totalen kunnen afwijken van uw werkelijke resultaten doordat niet altijd alle gegevens gekend zijn.",
             ),
         );
-        data[period_name] = grid;
+        grids[period_name] = grid;
       }
 
       let modal = $("<div/>").attr("id", "content-container");
       let period_buttons = $("<div/>").addClass("period-selector");
       let main_grid = $("<div/>").attr("id", "period-container");
       let isFirst = true;
-      for (let [period_name, grid] of Object.entries(data).reverse()) {
+
+      // Keep reverse order but put "Overzicht" first
+      let ordered_periods = ["Overzicht", ...Object.keys(data).reverse()];
+
+      for (let period_name of ordered_periods) {
+        let grid = grids[period_name];
         // We are using two lambda's sice otherwice they will all use the same scope.
         let btn = $("<button/>")
           .addClass("period_button")
@@ -242,8 +365,8 @@ function makeGrid() {
         modal.append(period_buttons);
       }
 
-      if (latest_period !== null) {
-        main_grid.append(data[latest_period]);
+      if (ordered_periods.length > 0) {
+        main_grid.append(grids[ordered_periods[0]]);
       }
       modal.append(main_grid);
       loading.replaceWith(modal);
