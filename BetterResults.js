@@ -2,7 +2,7 @@ const sidebar_selector = ".sidebar-results>:first-child";
 
 let wideToolbarCallback = function (mutationsList, _) {
   for (let mutation of mutationsList) {
-    if (mutation.type == 'childList' && mutation.removedNodes.length != 0) {
+    if (mutation.type == "childList" && mutation.removedNodes.length != 0) {
       for (const node of mutation.removedNodes) {
         if (node.id == "show-grid") {
           console.log("Readding grid afther smartschool removed it");
@@ -16,16 +16,27 @@ let wideToolbarCallback = function (mutationsList, _) {
 let wideToolbarObserver = new MutationObserver(wideToolbarCallback);
 
 let smscMainCallback = function (mutationsList, observer) {
-  wideToolbarObserver.observe($(sidebar_selector)[0], { attributes: false, childList: true, subtree: false });
+  wideToolbarObserver.observe($(sidebar_selector)[0], {
+    attributes: false,
+    childList: true,
+    subtree: false,
+  });
   onLoad();
   addButton();
 };
 
 let smscMainObserver = new MutationObserver(smscMainCallback);
-smscMainObserver.observe($('#smscMain')[0], { attributes: false, childList: true, subtree: false });
+smscMainObserver.observe($("#smscMain")[0], {
+  attributes: false,
+  childList: true,
+  subtree: false,
+});
 
 function totalToStr(total_numerator, total_denominator) {
-  return (Math.round(total_numerator / total_denominator * 1000) / 10).toString() + '%';
+  return (
+    (Math.round((total_numerator / total_denominator) * 1000) / 10).toString() +
+    "%"
+  );
 }
 
 function addButton() {
@@ -41,161 +52,202 @@ function addButton() {
       .addClass("optionWrapper-IEDUX")
       .addClass("button-mJfIq")
       .append(
-        $("<img/>").addClass("icon-dus_u").attr("src", chrome.runtime.getURL("static/img/icon_128.png")).attr("width", 24).attr("height", 24).attr("id", "show-grid-icon")
-      ).append(
-        $("<span/>").addClass("label-dOebJ").text("Grid").attr("id", "show-grid-label")
-      ).click(openGrid)
+        $("<img/>")
+          .addClass("icon-dus_u")
+          .attr("src", chrome.runtime.getURL("static/img/icon_128.png"))
+          .attr("width", 24)
+          .attr("height", 24)
+          .attr("id", "show-grid-icon"),
+      )
+      .append(
+        $("<span/>")
+          .addClass("label-dOebJ")
+          .text("Grid")
+          .attr("id", "show-grid-label"),
+      )
+      .click(openGrid),
   );
   console.log("Added button");
 }
 
 function makeGrid() {
   let loading = $("<h3>Loading!</h3>");
-  fetch('/results/api/v1/evaluations?itemsOnPage=500').then(r => r.json()).then(results => {
-    let data = {};
-    let course_to_graphic = {};
-    let latest_period = null;
-    for (const result of results) {
-      if (result["type"] != "normal") {
-        continue;
-      }
-      let period = result["period"]["name"];
-      if (latest_period === null) {
-        latest_period = period;
-      }
-      if (!(period in data)) {
-        data[period] = {};
-      }
-
-      period = data[period];
-      for (const course of result["courses"]) {
-        course_to_graphic[course["name"]] = course["graphic"];
-        const course_name = course["name"];
-        if (!(course_name in period)) {
-          period[course_name] = [];
+  fetch("/results/api/v1/evaluations?itemsOnPage=500")
+    .then((r) => r.json())
+    .then((results) => {
+      let data = {};
+      let course_to_graphic = {};
+      let latest_period = null;
+      for (const result of results) {
+        if (result["type"] != "normal") {
+          continue;
         }
-        period[course_name].push({ "date": result["date"], "name": result["name"], "graphic": result["graphic"] });
-      }
-    }
-
-    for (let period_name of Object.keys(data)) {
-      let period = data[period_name];
-
-      let grid = $("<div/>").attr("id", "period").append($("<h2/>").text(period_name + ":"));
-      let table = $("<table/>").attr("id", "result-table");
-
-      let longest = 0;
-      for (let [_, course] of Object.entries(period)) {
-        course.sort((a, b) => { return a["date"].localeCompare(b["date"]); });
-        if (course.length > longest) {
-          longest = course.length;
+        let period = result["period"]["name"];
+        if (latest_period === null) {
+          latest_period = period;
         }
-      }
-      // Add row for disclamer
-      let disc_row = $("<tr/>");
-      for (let i = 0; i < longest + 1; i++) {
-        disc_row.append($("<td/>").addClass("hidden-cell"));
-      }
-      disc_row.append($("<td/>").attr("id", "disclamer").text("!"));
-      table.append(disc_row);
-
-      let overallTotalNumerator = 0;
-      let overallTotalDenominator = 0;
-
-      for (let [course_name, course] of Object.entries(period)) {
-        let row = $("<tr/>");
-        if (course_to_graphic[course_name].type == "icon") {
-          row.append($("<th/>").append(
-            $("<span/>")
-              .addClass("icon-label icon-label--24 smsc-svg--" + course_to_graphic[course_name]["value"] + "--24")
-              .text(course_name)
-          ));
-        } else {
-          row.append($("<th/>").text(course_name));
+        if (!(period in data)) {
+          data[period] = {};
         }
 
-        let total_numerator = 0;
-        let total_denominator = 0;
+        period = data[period];
+        for (const course of result["courses"]) {
+          course_to_graphic[course["name"]] = course["graphic"];
+          const course_name = course["name"];
+          if (!(course_name in period)) {
+            period[course_name] = [];
+          }
+          period[course_name].push({
+            date: result["date"],
+            name: result["name"],
+            graphic: result["graphic"],
+          });
+        }
+      }
 
-        for (const result of course) {
-          const desc = result["graphic"]["description"];
-          const color = result["graphic"]["color"];
-          const name = result["name"];
-          let cellDesc = desc || "/";  // If desc is empty, use "-/-"
+      for (let period_name of Object.keys(data)) {
+        let period = data[period_name];
 
-          row.append($("<td/>")
-          .addClass("c-" + color + "-combo--300")
-          .attr({ id: "details", content: name })
-          .text(cellDesc));
+        let grid = $("<div/>")
+          .attr("id", "period")
+          .append($("<h2/>").text(period_name + ":"));
+        let table = $("<table/>").attr("id", "result-table");
 
-          let match = desc.match(/^([\d\,\.]+)\/([\d\,\.]+)$/);
-          if (match) {
-            total_numerator += parseFloat(match[1].replace(',', '.'));
-            total_denominator += parseFloat(match[2].replace(',', '.'));
+        let longest = 0;
+        for (let [_, course] of Object.entries(period)) {
+          course.sort((a, b) => {
+            return a["date"].localeCompare(b["date"]);
+          });
+          if (course.length > longest) {
+            longest = course.length;
           }
         }
+        let overallTotalNumerator = 0;
+        let overallTotalDenominator = 0;
 
-        for (let i = 0; i < longest - course.length; i++) {
-          row.append($("<td/>"));
+        for (let [course_name, course] of Object.entries(period)) {
+          let row = $("<tr/>");
+          if (course_to_graphic[course_name].type == "icon") {
+            row.append(
+              $("<th/>").append(
+                $("<span/>")
+                  .addClass(
+                    "icon-label icon-label--24 smsc-svg--" +
+                      course_to_graphic[course_name]["value"] +
+                      "--24",
+                  )
+                  .text(course_name),
+              ),
+            );
+          } else {
+            row.append($("<th/>").text(course_name));
+          }
+
+          let total_numerator = 0;
+          let total_denominator = 0;
+
+          for (const result of course) {
+            const desc = result["graphic"]["description"];
+            const color = result["graphic"]["color"];
+            const name = result["name"];
+            let cellDesc = desc || "/"; // If desc is empty, use "-/-"
+
+            row.append(
+              $("<td/>")
+                .addClass("c-" + color + "-combo--300")
+                .attr({ id: "details", content: name })
+                .text(cellDesc),
+            );
+
+            let match = desc.match(/^([\d\,\.]+)\/([\d\,\.]+)$/);
+            if (match) {
+              total_numerator += parseFloat(match[1].replace(",", "."));
+              total_denominator += parseFloat(match[2].replace(",", "."));
+            }
+          }
+
+          for (let i = 0; i < longest - course.length; i++) {
+            row.append($("<td/>"));
+          }
+
+          let last_cell = $("<td/>").addClass("total");
+          if (total_denominator != 0) {
+            last_cell.text(totalToStr(total_numerator, total_denominator));
+            if (total_numerator / total_denominator < 0.5) {
+              last_cell.addClass("is-low");
+            }
+          }
+          row.append(last_cell);
+
+          overallTotalNumerator += total_numerator;
+          overallTotalDenominator += total_denominator;
+
+          table.append(row);
         }
 
-        let last_cell = $("<td/>").addClass("total");
-        if (total_denominator != 0) {
-          last_cell.text(totalToStr(total_numerator, total_denominator));
-          if (total_numerator / total_denominator < 0.5) {
-            last_cell.addClass('is-low');
+        let overallTotalRow = $("<tr/>");
+        overallTotalRow.append($("<th/>").text("Total"));
+        for (let i = 0; i < longest; i++) {
+          overallTotalRow.append($("<td/>"));
+        }
+        let overallTotalCell = $("<td/>").addClass("total");
+        if (overallTotalDenominator != 0) {
+          overallTotalCell.text(
+            totalToStr(overallTotalNumerator, overallTotalDenominator),
+          );
+          if (overallTotalNumerator / overallTotalDenominator < 0.5) {
+            overallTotalCell.addClass("is-low");
           }
         }
-        row.append(last_cell);
+        overallTotalRow.append(overallTotalCell);
+        table.append(overallTotalRow);
 
-        overallTotalNumerator += total_numerator;
-        overallTotalDenominator += total_denominator;
-
-        table.append(row);
+        grid.append($("<div/>").attr("id", "table-container").append(table));
+        grid.append(
+          $("<div/>")
+            .addClass("disclaimer-text")
+            .text(
+              "Deze totalen kunnen afwijken van uw werkelijke resultaten doordat niet altijd alle gegevens gekend zijn.",
+            ),
+        );
+        data[period_name] = grid;
       }
 
-      let overallTotalRow = $("<tr/>");
-      overallTotalRow.append($("<th/>").text("Total"));
-      for (let i = 0; i < longest; i++) {
-        overallTotalRow.append($("<td/>"));
-      }
-      let overallTotalCell = $("<td/>").addClass("total");
-      if (overallTotalDenominator != 0) {
-        overallTotalCell.text(totalToStr(overallTotalNumerator, overallTotalDenominator));
-        if (overallTotalNumerator / overallTotalDenominator < 0.5) {
-          overallTotalCell.addClass('is-low');
+      let modal = $("<div/>").attr("id", "content-container");
+      let period_buttons = $("<div/>").addClass("period-selector");
+      let main_grid = $("<div/>").attr("id", "period-container");
+      let isFirst = true;
+      for (let [period_name, grid] of Object.entries(data).reverse()) {
+        // We are using two lambda's sice otherwice they will all use the same scope.
+        let btn = $("<button/>")
+          .addClass("period_button")
+          .text(period_name)
+          .click(
+            ((grid) => {
+              return function () {
+                $(".period_button").removeClass("active-period");
+                $(this).addClass("active-period");
+                main_grid.empty();
+                main_grid.append(grid);
+              };
+            })(grid),
+          );
+        if (isFirst) {
+          btn.addClass("active-period");
+          isFirst = false;
         }
+        period_buttons.append(btn);
       }
-      overallTotalRow.append(overallTotalCell);
-      table.append(overallTotalRow);
+      if (period_buttons.children().length > 1) {
+        modal.append(period_buttons);
+      }
 
-      grid.append($("<div/>").attr("id", "table-container").append(table));
-      data[period_name] = grid;
-    }
-
-    let modal = $("<div/>").attr("id", "content-container");
-    let period_buttons = $("<div/>");
-    let main_grid = $("<div/>").attr("id", "period-container");
-    for (let [period_name, grid] of Object.entries(data).reverse()) {
-      // We are using two lambda's sice otherwice they will all use the same scope.
-      period_buttons.append($("<button/>").addClass("period_button").text(period_name).click(((grid) => {
-        return () => {
-          main_grid.empty();
-          main_grid.append(grid);
-        };
-      })(grid)));
-    }
-    if (period_buttons.children().length > 1) {
-      period_buttons.prepend($("<span/>").text("Select period: "));
-      modal.append(period_buttons);
-    }
-
-    if (latest_period !== null) {
-      main_grid.append(data[latest_period]);
-    }
-    modal.append(main_grid);
-    loading.replaceWith(modal);
-  });
+      if (latest_period !== null) {
+        main_grid.append(data[latest_period]);
+      }
+      modal.append(main_grid);
+      loading.replaceWith(modal);
+    });
   return loading;
 }
 
@@ -203,37 +255,18 @@ function onLoad() {
   if (document.getElementById("grid-style")) {
     return;
   }
-  let style = document.createElement('style');
+  let style = document.createElement("style");
   style.id = "grid-style";
   style.innerHTML = `
 
-#result-table #disclamer {
-    border: none !important;
-    color: red;
-    font-weight: bold;
-    position: relative;
+.disclaimer-text {
+    color: #e53935;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    text-align: left;
+    font-style: italic;
 }
-    
-#disclamer:hover::before {
-    visibility: visible;
-    opacity: 1;
-}
-    
-#disclamer::before {
-    z-index: 1;
-    content: "Deze totalen kunnen afwijken van uw werkelijke resultaten doordat niet altijd alle gegevens gekend zijn.";
-    position: absolute;
-    left: -20rem;
-    border: 3px solid red;
-    padding: 0.2rem;
-    border-radius: 3px;
-    background-color: white;
-    width: 20rem;
-    visibility: hidden;
-    opacity: 0;
-    transition: visibility 0s, opacity 0.5s linear;
-}
-    
+
 #details {
   position: relative;
 }
@@ -261,27 +294,34 @@ function onLoad() {
   margin-left: -7.5rem;
 }
 
-#result-table .hidden-cell {
-  border: none !important;
+.period-selector {
+  display: flex;
+  border-bottom: 2px solid #e0e0e0;
+  margin-bottom: 1rem;
 }
 
 .period_button {
-  background-color: #ff520e;
-  border-radius: 3px;
-  border-style: none;
-  color: #FFFFFF;
-  margin-right: 0.5rem;
-  padding: 0.4rem;
+  background-color: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #777;
+  padding: 0.5rem 1.5rem;
+  font-weight: 600;
+  font-size: 1rem;
   text-align: center;
-  transition: 100ms;
+  transition: color 0.2s ease, border-color 0.2s ease;
+  cursor: pointer;
+  margin: 0;
+  margin-bottom: -2px;
 }
 
 .period_button:hover {
-  background-color: #ef4200;
+  color: #ff520e;
 }
 
-.period_button:active {
-  background-color: #ff6210;
+.period_button.active-period {
+  color: #ff520e;
+  border-bottom: 2px solid #ff520e;
 }
 
 .total {
@@ -317,11 +357,17 @@ function onLoad() {
 
 #result-table {
     margin-top: 1rem;
-    border: 0px;
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #cecece;
 }
 
 #result-table th {
     text-align: left;
+    background-color: #f8f8f8;
 }
 
 #result-table td {
@@ -329,11 +375,28 @@ function onLoad() {
 }
 
 #result-table th, #result-table td {
-    border: 1px solid gray !important;
+    border-right: 1px solid #cecece !important;
+    border-bottom: 1px solid #cecece !important;
+    border-left: none !important;
+    border-top: none !important;
     padding: 0.5rem;
     min-width: 5.5rem;
 }
- 
+
+#result-table tr:last-child th,
+#result-table tr:last-child td {
+    border-bottom: none !important;
+}
+
+#result-table th:last-child,
+#result-table td:last-child {
+    border-right: none !important;
+}
+
+#result-table tr:nth-child(even) th {
+    background-color: #f4f6f7;
+}
+
 #modal-background {
     display: none;
     position: fixed;
@@ -372,21 +435,24 @@ function onLoad() {
 }
 
 #modal-close {
-  background-color: #ee0000;
-  border-radius: 3px;
-  border-style: none;
-  color: #FFFFFF;
-  padding: 0.4rem;
-  text-align: center;
-  transition: 100ms;
+  background-color: transparent;
+  border: none;
+  color: #888;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
   position: absolute;
-  right: 0.5rem;
+  right: 1rem;
+  top: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 #modal-close:hover {
-  background-color: #dd0000;
+  color: #333;
 }
 #modal-close:active {
-  background-color: #ff0000;
+  color: #ff520e;
 }
 
 #show-grid {
@@ -408,19 +474,32 @@ function onLoad() {
     `;
   document.head.appendChild(style);
 
-  $("body").append(
-    $("<div/>").attr("id", "modal-background")
-  ).append(
-    $("<div/>").attr("id", "modal-content").append(
-      $("<button/>").attr("id", "modal-close").text("Close")
-    ).append(makeGrid())
-  );
+  $("body")
+    .append($("<div/>").attr("id", "modal-background"))
+    .append(
+      $("<div/>")
+        .attr("id", "modal-content")
+        .append(
+          $("<button/>")
+            .attr("id", "modal-close")
+            .html(
+              '<svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
+            ),
+        )
+        .append(makeGrid()),
+    );
 
   $("#modal-background, #modal-close").click(function () {
-    $("#modal-content, #modal-background").toggleClass("active");
+    $("#modal-content, #modal-background").removeClass("active");
+  });
+
+  $(document).keydown(function (e) {
+    if (e.key === "Escape") {
+      $("#modal-content, #modal-background").removeClass("active");
+    }
   });
 }
 
 function openGrid() {
-  $("#modal-content, #modal-background").toggleClass("active");
+  $("#modal-content, #modal-background").addClass("active");
 }
