@@ -1,3 +1,7 @@
+5.12
+- Improve general UI (by Yxmura)
+- Add overview of all periods (by Yxmura)
+
 5.11
 - Make sidebar injection more robust for smartschool changes
 
