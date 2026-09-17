@@ -117,7 +117,6 @@ function makeGrid() {
 
       let summary_grid = $("<div/>")
         .attr("id", "period")
-        .append($("<h2/>").text("Overzicht:"));
       let summary_table = $("<table/>").attr("id", "result-table");
 
       let sum_header = $("<tr/>");
@@ -227,8 +226,7 @@ function makeGrid() {
         let period = data[period_name];
 
         let grid = $("<div/>")
-          .attr("id", "period")
-          .append($("<h2/>").text(period_name + ":"));
+          .attr("id", "period");
         let table = $("<table/>").attr("id", "result-table");
 
         let longest = 0;
@@ -321,22 +319,12 @@ function makeGrid() {
         table.append(overallTotalRow);
 
         grid.append($("<div/>").attr("id", "table-container").append(table));
-        grid.append(
-          $("<div/>")
-            .addClass("disclaimer-text")
-            .text(
-              "Deze totalen kunnen afwijken van uw werkelijke resultaten doordat niet altijd alle gegevens gekend zijn.",
-            ),
-        );
         grids[period_name] = grid;
       }
 
       let modal = $("<div/>").attr("id", "content-container");
       let period_picker = $("<div/>").addClass("period-picker");
       let period_header = $("<div/>").addClass("period-header");
-      let period_active_label = $("<span/>")
-        .addClass("period-active-label")
-        .text("Overzicht");
       let period_dropdown = $("<div/>").addClass("period-dropdown");
       let period_toggle = $("<button/>")
         .attr("type", "button")
@@ -353,7 +341,6 @@ function makeGrid() {
       function renderPeriodButtonLabel() {
         const labelText = selected_period || "Selecteer periode";
         period_toggle.contents().first()[0].textContent = labelText + " ";
-        period_active_label.text(labelText);
       }
 
       function renderSelectedPeriods() {
@@ -422,7 +409,6 @@ function makeGrid() {
 
       period_header.append(
         period_dropdown.append(period_toggle, period_menu),
-        period_active_label,
       );
       period_picker.append(period_header);
       if (ordered_periods.length > 1) {
@@ -432,6 +418,13 @@ function makeGrid() {
       renderPeriodButtonLabel();
       renderSelectedPeriods();
       modal.append(main_grid);
+      modal.append(
+        $("<div/>")
+          .addClass("disclaimer-text")
+          .text(
+            "Deze totalen kunnen afwijken van uw werkelijke resultaten doordat niet altijd alle gegevens gekend zijn.",
+          ),
+      );
       loading.replaceWith(modal);
     });
   return loading;
@@ -624,7 +617,6 @@ function onLoad() {
     margin-top: 1rem;
     border-collapse: separate;
     border-spacing: 0;
-    width: 100%;
     border-radius: 8px;
     overflow: hidden;
     border: 1px solid #cecece;
@@ -633,6 +625,7 @@ function onLoad() {
 #result-table th {
     text-align: left;
     background-color: #f8f8f8;
+    white-space: nowrap;
 }
 
 #result-table td {
