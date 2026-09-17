@@ -325,23 +325,11 @@ function makeGrid() {
       let modal = $("<div/>").attr("id", "content-container");
       let period_picker = $("<div/>").addClass("period-picker");
       let period_header = $("<div/>").addClass("period-header");
-      let period_dropdown = $("<div/>").addClass("period-dropdown");
-      let period_toggle = $("<button/>")
-        .attr("type", "button")
-        .addClass("period-toggle")
-        .text("Overzicht")
-        .append($("<span/>").addClass("period-caret").text("▼"));
-      let period_menu = $("<div/>").addClass("period-menu");
+      let period_dropdown= $("<select/>").addClass("period-toggle");
       let main_grid = $("<div/>").attr("id", "period-container");
 
-      // Keep reverse order but put "Overzicht" first
-      let ordered_periods = ["Overzicht", ...Object.keys(data).reverse()];
-      let selected_period = "Overzicht";
-
-      function renderPeriodButtonLabel() {
-        const labelText = selected_period || "Selecteer periode";
-        period_toggle.contents().first()[0].textContent = labelText + " ";
-      }
+      let ordered_periods = [...Object.keys(data).reverse(), "Overzicht"];
+      let selected_period = ordered_periods[0];
 
       function renderSelectedPeriods() {
         main_grid.empty();
@@ -351,72 +339,25 @@ function makeGrid() {
       }
 
       for (let period_name of ordered_periods) {
-        let option_row = $("<label/>")
-          .addClass("period-option")
-          .append(
-            $("<input/>")
-              .attr("type", "radio")
-              .attr("name", "period-selection")
-              .addClass("period-radio")
-              .attr("data-period", period_name)
-              .prop("checked", period_name === "Overzicht"),
-          )
-          .append(
-            $("<span/>").addClass("period-option-label").text(period_name),
-          );
-        period_menu.append(option_row);
+        let option = $("<option/>")
+          .text(period_name)
+          .prop("checked", period_name === selected_period)
+          .val(period_name);
+        period_dropdown.append(option);
       }
 
-      period_menu.on("change", ".period-radio", function () {
-        const period_name = $(this).attr("data-period");
-        selected_period = period_name;
-        renderPeriodButtonLabel();
+      period_dropdown.change(function () {
+        selected_period = $(this).val();
         renderSelectedPeriods();
-        period_dropdown.removeClass("open");
       });
 
-      function positionPeriodMenu() {
-        const rect = period_toggle[0].getBoundingClientRect();
-        period_menu.css({
-          top: rect.bottom + 6 + "px",
-          left: rect.left + "px",
-          width: Math.max(rect.width, 240) + "px",
-        });
-      }
 
-      period_toggle.on("click", function (e) {
-        e.stopPropagation();
-        const willOpen = !period_dropdown.hasClass("open");
-        period_dropdown.toggleClass("open");
-        if (willOpen) {
-          positionPeriodMenu();
-        }
-      });
-
-      $(window).on("resize scroll", function () {
-        if (period_dropdown.hasClass("open")) {
-          positionPeriodMenu();
-        }
-      });
-
-      $(document).on("click", function () {
-        period_dropdown.removeClass("open");
-      });
-
-      period_menu.on("click", function (e) {
-        e.stopPropagation();
-      });
-
-      period_header.append(
-        period_dropdown.append(period_toggle, period_menu),
-      );
+      period_header.append(period_dropdown);
       period_picker.append(period_header);
       if (ordered_periods.length > 1) {
         modal.append(period_picker);
       }
 
-      renderPeriodButtonLabel();
-      renderSelectedPeriods();
       modal.append(main_grid);
       modal.append(
         $("<div/>")
@@ -425,6 +366,7 @@ function makeGrid() {
             "Deze totalen kunnen afwijken van uw werkelijke resultaten doordat niet altijd alle gegevens gekend zijn.",
           ),
       );
+      renderSelectedPeriods();
       loading.replaceWith(modal);
     });
   return loading;
@@ -490,11 +432,6 @@ function onLoad() {
   color: #4a4a4a;
 }
 
-.period-dropdown {
-  position: relative;
-  display: inline-block;
-}
-
 .period-toggle {
   background-color: #f3c000;
   border: 1px solid #c39d00;
@@ -519,67 +456,9 @@ function onLoad() {
   background-color: #e3b100;
 }
 
-.period-caret {
-  font-size: 0.72rem;
-  color: #2f2f2f;
+.period-toggle option {
+  background-color: white;
 }
-
-.period-menu {
-  display: none;
-  position: fixed;
-  min-width: 260px;
-  max-height: min(360px, 62vh);
-  overflow: auto;
-  background: #f7f7f7;
-  border: 1px solid #cfcfcf;
-  border-radius: 0.3rem;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-  z-index: 2001;
-  padding: 0.4rem 0.6rem 0.4rem 0.4rem;
-}
-
-.period-dropdown.open .period-menu {
-  display: block;
-}
-
-.period-option {
-  display: flex;
-  align-items: left;
-  gap: 0.62rem;
-  padding: 0.52rem 0.72rem;
-  min-height: 2.2rem;
-  cursor: pointer;
-  user-select: none;
-}
-
-.period-option:hover {
-  background-color: #ececec;
-}
-
-.period-option input[type="radio"] {
-  margin: 0;
-  width: 0.98rem;
-  height: 0.98rem;
-  accent-color: #FF520E;
-  flex: 0 0 auto;
-}
-
-.period-option-label {
-  color: #444;
-  font-size: 0.96rem;
-  font-weight: 500;
-}
-
-.period-option:has(input[type="radio"]:checked) {
-  background-color: #B8B8B8;
-}
-
-.period-option:has(input[type="radio"]:checked) .period-option-label {
-  color: #2a2a2a;
-  font-weight: 700;
-}
-
-
 
 .total {
     font-weight: bold;
