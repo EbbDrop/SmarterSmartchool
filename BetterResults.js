@@ -92,8 +92,8 @@ function makeGrid() {
 
         period = data[period];
         for (const course of result["courses"]) {
-          course_to_graphic[course["name"]] = course["graphic"];
           const course_name = course["name"];
+          course_to_graphic[course_name] = course["graphic"];
           if (!(course_name in period)) {
             period[course_name] = [];
           }
@@ -503,7 +503,7 @@ function onLoad() {
 
 #result-table th {
     text-align: left;
-    background-color: #f8f8f8;
+    background-color: #00000008;
     white-space: nowrap;
 }
 
@@ -528,10 +528,6 @@ function onLoad() {
 #result-table th:last-child,
 #result-table td:last-child {
     border-right: none !important;
-}
-
-#result-table tr:nth-child(even) th {
-    background-color: #f4f6f7;
 }
 
 #modal-background {
