@@ -1,3 +1,7 @@
+5.13
+- Improved resultoverview sorting by week and month
+- Visual comparison towards class average (red/green)
+
 5.12
 - Improve general UI (by Yxmura)
 - Add overview of all periods (by Yxmura)
