@@ -33,10 +33,29 @@ smscMainObserver.observe($("#smscMain")[0], {
 });
 
 function totalToStr(total_numerator, total_denominator) {
+  if (!total_denominator) return "";
   return (
     (Math.round((total_numerator / total_denominator) * 1000) / 10).toString() +
     "%"
   );
+}
+
+function getWeekKey(dateStr) {
+  if (!dateStr) return "overig";
+  let d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  let day = d.getDay();
+  let diff = d.getDate() - day + (day == 0 ? -6 : 1);
+  let monday = new Date(d.setDate(diff));
+  return monday.toISOString().split('T')[0];
+}
+
+function getMonthLabel(dateStr) {
+  if (!dateStr) return "";
+  let d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "";
+  let m = d.toLocaleString('nl-NL', { month: 'long', year: 'numeric' });
+  return m.charAt(0).toUpperCase() + m.slice(1);
 }
 
 function addButton() {
@@ -46,8 +65,7 @@ function addButton() {
     return;
   }
 
-  $(sidebar_selector).append(
-    $("<button/>")
+  $(sidebar_selector).append($("<button/>")
       .attr("id", "show-grid")
       .addClass("optionWrapper-IEDUX")
       .addClass("button-mJfIq")
@@ -74,10 +92,11 @@ function makeGrid() {
   let loading = $("<h3>Loading!</h3>");
   fetch("/results/api/v1/evaluations?itemsOnPage=500")
     .then((r) => r.json())
-    .then((results) => {
+    .then(async (results) => {
       let data = {};
       let course_to_graphic = {};
       let latest_period = null;
+
       for (const result of results) {
         if (result["type"] != "normal") {
           continue;
@@ -97,26 +116,28 @@ function makeGrid() {
           if (!(course_name in period)) {
             period[course_name] = [];
           }
+
           period[course_name].push({
+            id: result["identifier"] || result["id"],
             date: result["date"],
             name: result["name"],
             graphic: result["graphic"],
+            details: result["details"] || null
           });
         }
       }
 
       let grids = {};
-      let all_subjects = new Set();
+      let all_subjects_set = new Set();
       for (let period_name of Object.keys(data)) {
         for (let course of Object.keys(data[period_name])) {
-          all_subjects.add(course);
+          all_subjects_set.add(course);
         }
       }
-      all_subjects = Array.from(all_subjects).sort();
+      let all_subjects = Array.from(all_subjects_set).sort();
       let all_periods = Object.keys(data);
 
-      let summary_grid = $("<div/>")
-        .attr("id", "period")
+      let summary_grid = $("<div/>").attr("id", "period");
       let summary_table = $("<table/>").attr("id", "result-table");
 
       let sum_header = $("<tr/>");
@@ -225,25 +246,67 @@ function makeGrid() {
       for (let period_name of Object.keys(data)) {
         let period = data[period_name];
 
-        let grid = $("<div/>")
-          .attr("id", "period");
+        let grid = $("<div/>").attr("id", "period");
         let table = $("<table/>").attr("id", "result-table");
 
-        let longest = 0;
+        // Verzamel alle unieke weken en maandlabels voor deze periode
+        let weekMap = new Set();
+        let weekToMonth = {};
         for (let [_, course] of Object.entries(period)) {
-          course.sort((a, b) => {
-            return a["date"].localeCompare(b["date"]);
-          });
-          if (course.length > longest) {
-            longest = course.length;
+          course.sort((a, b) => (a["date"] || "").localeCompare(b["date"] || ""));
+          for (let res of course) {
+            let wKey = getWeekKey(res["date"]);
+            weekMap.add(wKey);
+            weekToMonth[wKey] = getMonthLabel(res["date"]);
           }
         }
+        let all_weeks = Array.from(weekMap).sort();
+
+        // Maand-header rij bouwen
+        let monthRow = $("<tr/>").addClass("month-header-row");
+        monthRow.append($("<th/>").text("Maand / Vak"));
+
+        let monthSpans = [];
+        let currentMonth = null;
+        let currentSpan = 0;
+        for (let wKey of all_weeks) {
+          let mLabel = weekToMonth[wKey] || "";
+          if (mLabel === currentMonth) {
+            currentSpan++;
+          } else {
+            if (currentMonth !== null) {
+              monthSpans.push({ month: currentMonth, span: currentSpan });
+            }
+            currentMonth = mLabel;
+            currentSpan = 1;
+          }
+        }
+        if (currentMonth !== null) {
+          monthSpans.push({ month: currentMonth, span: currentSpan });
+        }
+
+        for (let ms of monthSpans) {
+          monthRow.append(
+            $("<th/>")
+              .attr("colspan", ms.span)
+              .attr("style", "text-align: center; background-color: #00000010; font-weight: bold; font-size: 0.85rem;")
+              .text(ms.month)
+          );
+        }
+        monthRow.append($("<th/>")); // voor de Totaal-kolom
+        table.append(monthRow);
+
         let overallTotalNumerator = 0;
         let overallTotalDenominator = 0;
 
         for (let [course_name, course] of Object.entries(period)) {
           let row = $("<tr/>");
-          if (course_to_graphic[course_name].type == "icon") {
+          let avgRow = $("<tr/>").addClass("class-avg-row");
+          let medRow = $("<tr/>").addClass("class-med-row");
+
+          let thStyle = "font-size: 0.75rem; color: #777; font-weight: normal; padding-left: 1.2rem;";
+
+          if (course_name in course_to_graphic && course_to_graphic[course_name].type == "icon") {
             row.append(
               $("<th/>").append(
                 $("<span/>")
@@ -259,34 +322,157 @@ function makeGrid() {
             row.append($("<th/>").text(course_name));
           }
 
+          avgRow.append($("<th/>").attr("style", thStyle).text("↳ Klasgemiddelde"));
+          medRow.append($("<th/>").attr("style", thStyle).text("↳ Klasmediaan"));
+
           let total_numerator = 0;
           let total_denominator = 0;
 
-          for (const result of course) {
-            const desc = result["graphic"]["description"];
-            const color = result["graphic"]["color"];
-            const name = result["name"];
-            let cellDesc = desc || "/"; // If desc is empty, use "-/-"
-
-            row.append(
-              $("<td/>")
-                .addClass("c-" + color + "-combo--300")
-                .attr({ id: "details", content: name })
-                .text(cellDesc),
-            );
-
-            let match = desc.match(/^([\d\,\.]+)\/([\d\,\.]+)$/);
-            if (match) {
-              total_numerator += parseFloat(match[1].replace(",", "."));
-              total_denominator += parseFloat(match[2].replace(",", "."));
-            }
-          }
-
-          for (let i = 0; i < longest - course.length; i++) {
-            row.append($("<td/>"));
-          }
+          let avgTotals = { num: 0, den: 0 };
+          let medTotals = { num: 0, den: 0 };
 
           let last_cell = $("<td/>").addClass("total");
+          let lastAvgCell = $("<td/>").addClass("total").attr("style", "font-size: 0.85rem; color: #000;");
+          let lastMedCell = $("<td/>").addClass("total").attr("style", "font-size: 0.85rem; color: #000;");
+
+          let updateTotalsUI = () => {
+            if (avgTotals.den > 0) {
+              lastAvgCell.text(totalToStr(avgTotals.num, avgTotals.den));
+            }
+            if (medTotals.den > 0) {
+              lastMedCell.text(totalToStr(medTotals.num, medTotals.den));
+            }
+
+            if (total_denominator > 0 && avgTotals.den > 0) {
+              let studentRatio = total_numerator / total_denominator;
+              let classAvgRatio = avgTotals.num / avgTotals.den;
+              if (studentRatio > classAvgRatio) {
+                last_cell.css("color", "#2e7d32").css("font-weight", "bold");
+              } else if (studentRatio < classAvgRatio) {
+                last_cell.css("color", "#c62828").css("font-weight", "bold");
+              } else {
+                last_cell.css("color", "#000").css("font-weight", "bold");
+              }
+            }
+          };
+
+          // Map course results by week key
+          let courseWeekMap = {};
+          for (const result of course) {
+            let wKey = getWeekKey(result["date"]);
+            courseWeekMap[wKey] = result;
+          }
+
+          let prevMonth = null;
+          for (let i = 0; i < all_weeks.length; i++) {
+            let wKey = all_weeks[i];
+            let result = courseWeekMap[wKey];
+            let currentMonth = weekToMonth[wKey];
+            
+            // Bepaal of dit de eerste kolom van een nieuwe maand is voor vette scheidingslijn
+            let isNewMonth = currentMonth !== prevMonth && i > 0;
+            prevMonth = currentMonth;
+
+            let borderStyle = isNewMonth ? "border-left: 3px solid #333 !important;" : "";
+
+            let studentCell = $("<td/>").attr("style", borderStyle);
+            let avgCell = $("<td/>").attr("style", "font-size: 0.8rem; color: #555;" + (isNewMonth ? " border-left: 3px solid #333 !important;" : "")).text("-");
+            let medCell = $("<td/>").attr("style", "font-size: 0.8rem; color: #555;" + (isNewMonth ? " border-left: 3px solid #333 !important;" : "")).text("-");
+
+            if (result) {
+              const desc = result["graphic"]["description"];
+              const color = result["graphic"]["color"];
+              const name = result["name"];
+              let cellDesc = desc || "/";
+
+              studentCell.addClass("c-" + color + "-combo--300")
+                .attr({ id: "details", content: name })
+                .text(cellDesc);
+
+              let match = desc.match(/^([\d\,\.]+)\/([\d\,\.]+)$/);
+              let studentVal = match ? parseFloat(match[1].replace(",", ".")) : null;
+              let testMax = match ? parseFloat(match[2].replace(",", ".")) : null;
+
+              if (match) {
+                total_numerator += studentVal;
+                total_denominator += testMax;
+              }
+
+              let extractTendencies = (detObj) => {
+                if (!detObj) return;
+                let tendencies = detObj.centralTendencies || [];
+                if (Array.isArray(tendencies)) {
+                  for (let item of tendencies) {
+                    let text = JSON.stringify(item).toLowerCase();
+                    let valStr = "";
+                    let valNum = null;
+
+                    if (item.graphic && item.graphic.description) {
+                      valStr = item.graphic.description;
+                    } else if (item.value !== undefined) {
+                      valStr = typeof item.value === 'number' ? item.value + '%' : item.value;
+                    } else if (item.label) {
+                      valStr = item.label;
+                    }
+
+                    let scoreMatch = valStr.match(/^([\d\,\.]+)\/([\d\,\.]+)$/);
+                    if (scoreMatch) {
+                      valNum = parseFloat(scoreMatch[1].replace(",", "."));
+                    } else {
+                      let pctMatch = valStr.match(/^([\d\,\.]+)\%?$/);
+                      if (pctMatch && testMax) {
+                        valNum = (parseFloat(pctMatch[1].replace(",", ".")) / 100) * testMax;
+                      }
+                    }
+
+                    if (text.includes("gemiddelde") || text.includes("average") || text.includes("mean")) {
+                      if (valStr) avgCell.text(valStr);
+                      if (valNum !== null && testMax) {
+                        avgTotals.num += valNum;
+                        avgTotals.den += testMax;
+
+                        if (studentVal !== null) {
+                          if (studentVal > valNum) {
+                            studentCell.css("color", "#2e7d32").css("font-weight", "bold");
+                          } else if (studentVal < valNum) {
+                            studentCell.css("color", "#c62828").css("font-weight", "bold");
+                          }
+                        }
+                      }
+                    }
+                    if (text.includes("mediaan") || text.includes("median")) {
+                      if (valStr) medCell.text(valStr);
+                      if (valNum !== null && testMax) {
+                        medTotals.num += valNum;
+                        medTotals.den += testMax;
+                      }
+                    }
+                  }
+                  updateTotalsUI();
+                }
+              };
+
+              if (result.details) {
+                extractTendencies(result.details);
+              }
+
+              if (result.id) {
+                fetch(`/results/api/v1/evaluations/${result.id}`)
+                  .then((res) => res.json())
+                  .then((details) => {
+                    if (details) {
+                      extractTendencies(details.details || details);
+                    }
+                  })
+                  .catch((e) => console.log("Detail fetch error", e));
+              }
+            }
+
+            row.append(studentCell);
+            avgRow.append(avgCell);
+            medRow.append(medCell);
+          }
+
           if (total_denominator != 0) {
             last_cell.text(totalToStr(total_numerator, total_denominator));
             if (total_numerator / total_denominator < 0.5) {
@@ -294,16 +480,20 @@ function makeGrid() {
             }
           }
           row.append(last_cell);
+          avgRow.append(lastAvgCell);
+          medRow.append(lastMedCell);
 
           overallTotalNumerator += total_numerator;
           overallTotalDenominator += total_denominator;
 
           table.append(row);
+          table.append(avgRow);
+          table.append(medRow);
         }
 
         let overallTotalRow = $("<tr/>");
         overallTotalRow.append($("<th/>").text("Totaal"));
-        for (let i = 0; i < longest; i++) {
+        for (let i = 0; i < all_weeks.length; i++) {
           overallTotalRow.append($("<td/>"));
         }
         let overallTotalCell = $("<td/>").addClass("total");
@@ -334,7 +524,7 @@ function makeGrid() {
       function renderSelectedPeriods() {
         main_grid.empty();
         if (selected_period && grids[selected_period]) {
-          main_grid.append(grids[selected_period].clone(true, true));
+          main_grid.append(grids[selected_period]);
         }
       }
 
@@ -350,7 +540,6 @@ function makeGrid() {
         selected_period = $(this).val();
         renderSelectedPeriods();
       });
-
 
       period_header.append(period_dropdown);
       period_picker.append(period_header);
